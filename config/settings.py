@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
+# False positive from W002. Removing the '/' at the beginning breaks the api
+SILENCED_SYSTEM_CHECKS = ["urls.W002"]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -143,6 +146,7 @@ REST_FRAMEWORK = {
         "accounts.jwt.CustomJWTAuthentication",
     ],
     "PAGE_SIZE": 10,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
 }
 AUTH_TOKEN_CLASSES = [
     "rest_framework_simplejwt.tokens.AccessToken",
