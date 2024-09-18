@@ -51,10 +51,7 @@ class StoryListAPIView(generics.ListAPIView):
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-        queryset = Story.objects.all()
-        username = self.request.query_params.get("username")
-        if username:
-            queryset = queryset.filter(user__username=username)
+        queryset = Story.objects.all().order_by("-created_at")
         return queryset
 
     def list(self, request, *args, **kwargs):
@@ -65,7 +62,30 @@ class StoryListAPIView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+class StoryMineAPIView(generics.ListAPIView):
+    serializer_class = StorySerializer
+    pagination_class = PageNumberPagination
 
+    def get_queryset(self, request):
+        user = request._user
+        if user:
+            queryset = Story.objects.all()
+            queryset = queryset.filter(user__username=user.username)
+            return queryset.order_by("-created_at")
+        else:
+            return None
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset(request)
+        if queryset is None:
+            return Response([])
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class StoryCreateAPIView(generics.CreateAPIView):
     serializer_class = StoryCreatorSerializer

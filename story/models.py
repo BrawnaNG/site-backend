@@ -21,7 +21,7 @@ class Story(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(Tag, blank=True)
     categories = models.ManyToManyField(Category)
-    chapters = models.ManyToManyField("self", blank=True, null=True, symmetrical=False)
+    chapters = models.ManyToManyField("self", blank=True, symmetrical=False)
 
     def save(self, *args, **kwargs):
         if strip_tags(self.body) != self.body:
