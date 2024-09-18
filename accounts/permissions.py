@@ -28,12 +28,12 @@ class IsUserType(BasePermission):
 
 
 class IsAuthor(IsUserType):
-    user_type = "Author"
+    user_type = "author"
 
 
 class IsAdmin(IsUserType):
-    user_type = "Administrator"
+    user_type = "administrator"
 
 
 class IsReader(IsUserType):
-    user_type = "Reader"
+    user_type = "reader"
