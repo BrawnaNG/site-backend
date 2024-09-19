@@ -48,7 +48,6 @@ class SearchView(generics.ListAPIView):
 
 class StoryListAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
-    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         queryset = Story.objects.all().order_by("-created_at")
@@ -65,7 +64,6 @@ class StoryListAPIView(generics.ListAPIView):
     
 class StoryMineAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
-    pagination_class = PageNumberPagination
 
     def get_queryset(self, request):
         user = request._user
@@ -84,6 +82,18 @@ class StoryMineAPIView(generics.ListAPIView):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+class StoryFeaturedAPIView(generics.RetrieveAPIView):
+    serializer_class = StorySerializer
+    permission_classes = []
+
+    def get_queryset(self):
+        return Story.objects.all().filter(is_featured=True).order_by("-created_at")[:1]
+
+    def get(self, request):
+        queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

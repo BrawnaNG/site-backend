@@ -14,6 +14,7 @@ from tag.models import Tag
 
 class Story(models.Model):
     body = models.TextField()
+    title = models.TextField(blank=False, null=False)
     brief = models.TextField(blank=True, null=True)
     slug = models.SlugField(unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -22,6 +23,7 @@ class Story(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     categories = models.ManyToManyField(Category)
     chapters = models.ManyToManyField("self", blank=True, symmetrical=False)
+    is_featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if strip_tags(self.body) != self.body:
