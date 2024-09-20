@@ -14,9 +14,9 @@ from tag.models import Tag
 
 class Story(models.Model):
     body = models.TextField()
-    title = models.TextField(blank=False, null=False)
+    title = models.CharField(blank=False, null=False, max_length=255)
     brief = models.TextField(blank=True, null=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
