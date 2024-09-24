@@ -64,6 +64,7 @@ class StoryListAPIView(generics.ListAPIView):
     
 class StoryMineAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
+    permission_classes = [IsAuthor]
 
     def get_queryset(self, request):
         user = request._user

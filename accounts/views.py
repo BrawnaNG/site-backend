@@ -12,14 +12,29 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 
-from .permissions import IsAdmin
+from .permissions import (
+    IsAdmin,
+    IsAuthenticated
+)
+
 from .serializers import (
     ChangePasswordAdminSerializer,
     RegistrationSerializer,
     UserSerializer,
+    UserRoleSerializer
 )
 
+class UserRoleListAPIView(APIView):
+    serializer_class = UserRoleSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        user = request._user
+        if user:
+            serializer = self.serializer_class(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class RegistrationAPIView(APIView):
     serializer_class = RegistrationSerializer
     permission_classes = []
