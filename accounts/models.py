@@ -26,7 +26,7 @@ class User(AbstractUser):
     email = models.EmailField(max_length=EMAIL_MAX_LENGTH, unique=True)
     type = models.CharField(max_length=20, choices=USER_TYPES, default=READER)
     saved_stories = models.ManyToManyField(
-        Story, related_name="saved_by_users", null=True, blank=True
+        Story, related_name="saved_by_users", blank=True
     )
 
     def __str__(self):

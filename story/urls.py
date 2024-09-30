@@ -8,7 +8,9 @@ from .views import (
     StoryCreateAPIView,
     StoryDetailAPIView,
     StoryListAPIView,
+    StoryMineAPIView,
     StoryRetrieveUpdateDestroyAPIView,
+    StoryFeaturedAPIView,
 )
 
 app_name = "story"
@@ -22,6 +24,8 @@ urlpatterns = [
     path("/add/", StoryCreateAPIView.as_view(), name="story-create"),
     path("/search/", SearchView.as_view(), name="search"),
     path("/list/", StoryListAPIView.as_view(), name="story-list"),
+    path("/mine/", StoryMineAPIView.as_view(), name="story-mine"),
+    path("/featured/", StoryFeaturedAPIView.as_view(), name="story-featured"),
     path("/search/", SearchView.as_view()),
     path("/detail/<slug:slug>/", StoryDetailAPIView.as_view(), name="story-detail"),
     path("/save-story-list/", SavedStoriesAPIView.as_view()),

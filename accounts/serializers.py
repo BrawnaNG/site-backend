@@ -5,7 +5,6 @@ from rest_framework import serializers
 from accounts.models import User
 from story.models import Story
 
-
 class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -47,6 +46,15 @@ class UserSerializer(serializers.ModelSerializer):
     def get_story_count(self, obj):
         return Story.objects.filter(user=obj).count()
 
+class UserRoleSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ("role","id")
+
+    def get_role(self, obj):
+        return obj.type
 
 class ChangePasswordAdminSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
