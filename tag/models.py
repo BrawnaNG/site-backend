@@ -10,6 +10,7 @@ class Tag(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True
     )
+    old_brawna_term_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
