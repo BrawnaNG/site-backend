@@ -28,6 +28,7 @@ class User(AbstractUser):
     saved_stories = models.ManyToManyField(
         Story, related_name="saved_by_users", blank=True
     )
+    old_brawna_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.alias or self.username
