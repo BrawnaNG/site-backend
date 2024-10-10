@@ -51,6 +51,7 @@ class StoryListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Story.objects.all().order_by("-created_at")
+        queryset = queryset.filter(is_published=True)
         return queryset
 
     def list(self, request, *args, **kwargs):
@@ -67,10 +68,15 @@ class StoryMineAPIView(generics.ListAPIView):
     permission_classes = [IsAuthor]
 
     def get_queryset(self, request):
+        draft = self.request.GET.get("draft")
         user = request._user
         if user:
             queryset = Story.objects.all()
             queryset = queryset.filter(user__username=user.username)
+            if draft and draft == "1":
+                queryset = queryset.filter(is_published=False)
+            else:
+                queryset = queryset.filter(is_published=True)
             return queryset.order_by("-created_at")
         else:
             return None
