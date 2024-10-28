@@ -8,25 +8,32 @@ from comment.serializers import CommentSerializer
 from tag.models import Tag
 from tag.serializers import TagSerializer
 
-from .models import Story
+from .models import Story, Chapter
 
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Story
-        fields = ("id", "body", "slug")
+        model = Chapter
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "created_at",
+            "modified_date",
+            "user",
+        )
 
 
 class StorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
-    chapters = ChapterSerializer(many=True, read_only=True)
-    categories = CategorySerializer(many=True, read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
+    chapters = ChapterSerializer(many=True)
+    categories = CategorySerializer(many=True)
+    tags = TagSerializer(many=True)
 
     class Meta:
         model = Story
         fields = "__all__"
         read_only_fields = (
+            "id",
             "created_at",
             "modified_date",
             "slug",
@@ -56,6 +63,23 @@ class StoryDetailSerializer(serializers.ModelSerializer):
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
 
+class ChapterCreatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chapter
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "created_at",
+            "modified_date",
+            "user",
+        )
+
+    def validate_body(self, value):
+        if strip_tags(value) != value:
+            raise serializers.ValidationError(
+                "Chapter body should not contain HTML tags."
+            )
+        return value
 
 class StoryCreatorSerializer(serializers.ModelSerializer):
     categories = serializers.ListField(
@@ -74,13 +98,6 @@ class StoryCreatorSerializer(serializers.ModelSerializer):
             "slug",
             "user",
         )
-
-    def validate_body(self, value):
-        if strip_tags(value) != value:
-            raise serializers.ValidationError(
-                "Story body should not contain HTML tags."
-            )
-        return value
 
     def validate_categories(self, value):
         category_ids = []
