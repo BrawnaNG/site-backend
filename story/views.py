@@ -10,7 +10,7 @@ from category.models import Category
 from tag.models import Tag
 
 from .models import Story
-from .serializers import StoryCreatorSerializer, StoryDetailSerializer, StorySerializer
+from .serializers import StoryCreatorSerializer, StoryDetailSerializer, StorySerializer, ChapterCreatorSerializer
 
 
 class SearchView(generics.ListAPIView):
@@ -103,6 +103,22 @@ class StoryFeaturedAPIView(generics.RetrieveAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+class ChapterCreateAPIView(generics.CreateAPIView):
+    serializer_class = ChapterCreatorSerializer
+    permission_classes = [IsAuthor]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(
+            data="Chapter created successfully.", status=status.HTTP_201_CREATED
+        )
 
 class StoryCreateAPIView(generics.CreateAPIView):
     serializer_class = StoryCreatorSerializer

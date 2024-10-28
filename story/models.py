@@ -13,7 +13,6 @@ from tag.models import Tag
 
 
 class Story(models.Model):
-    body = models.TextField()
     title = models.CharField(blank=False, null=False, max_length=255)
     brief = models.TextField(blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True)
@@ -22,19 +21,35 @@ class Story(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(Tag, blank=True)
     categories = models.ManyToManyField(Category)
-    chapters = models.ManyToManyField("self", blank=True, symmetrical=False)
     is_featured = models.BooleanField(default=False)
     old_brawna_id = models.IntegerField(null=True, blank=True)
     is_published = models.BooleanField(default=False)
+    has_chapters = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if strip_tags(self.body) != self.body:
-            raise ValidationError("Story body should not contain HTML tags.")
-        self.slug = slugify(self.body)[:20]
+        self.slug = slugify(self.title)[:20]
         if Story.objects.filter(slug=self.slug).exists():
             extra = str(randint(1, 10000000))
-            self.slug = slugify(self.body)[:20] + "-" + extra
+            self.slug = slugify(self.title)[:20] + "-" + extra
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.body[:20]
+        return self.title
+
+class Chapter(models.Model):
+    title = models.CharField(blank=True, null=True, max_length=255)
+    body = models.TextField()
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    old_brawna_id = models.IntegerField(null=True, blank=True)
+    is_featured = models.BooleanField(default=False)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        if strip_tags(self.body) != self.body:
+            raise ValidationError("Chapter body should not contain HTML tags.")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title    
