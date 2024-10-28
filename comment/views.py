@@ -17,7 +17,7 @@ class CommentListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         try:
-            story = Story.objects.get(slug=self.kwargs["storyslug"])
+            story = Story.objects.get(id=self.kwargs["storyid"])
         except Exception:
             raise ValidationError("Invalid story slug provided.")
         queryset = Comment.objects.filter(story=story)
@@ -37,13 +37,13 @@ class CommentCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         try:
-            story_slug = self.kwargs["storyslug"]
-            story = Story.objects.get(slug=story_slug)
+            story_id = self.kwargs["storyid"]
+            story = Story.objects.get(id=story_id)
             serializer.save(user=self.request.user, story=story)
         except Story.DoesNotExist:
-            raise ValidationError("Invalid story slug provided.")
+            raise ValidationError("Invalid story id provided.")
         except KeyError:
-            raise ValidationError("Story slug is missing from URL.")
+            raise ValidationError("Story id is missing from URL.")
 
 
 class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
