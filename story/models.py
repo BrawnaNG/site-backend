@@ -25,6 +25,7 @@ class Story(models.Model):
     chapters = models.ManyToManyField("self", blank=True, symmetrical=False)
     is_featured = models.BooleanField(default=False)
     old_brawna_id = models.IntegerField(null=True, blank=True)
+    is_published = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if strip_tags(self.body) != self.body:
