@@ -20,7 +20,7 @@ class Story(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(Tag, blank=True)
-    categories = models.ManyToManyField(Category)
+    categories = models.ManyToManyField(Category, blank=True)
     is_featured = models.BooleanField(default=False)
     old_brawna_id = models.IntegerField(null=True, blank=True)
     is_published = models.BooleanField(default=False)
