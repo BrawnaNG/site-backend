@@ -12,12 +12,12 @@ app_name = "comment"
 urlpatterns = [
     path("/list/", CommentListAdminAPIView.as_view(), name="comment-admin-list"),
     path(
-        "/story-comment/<slug:storyslug>/",
+        "/story-comment/<int:storyid>/",
         CommentListAPIView.as_view(),
         name="comment-list",
     ),
     path(
-        "/add/<slug:storyslug>/", CommentCreateAPIView.as_view(), name="comment-create"
+        "/add/<int:storyid>/", CommentCreateAPIView.as_view(), name="comment-create"
     ),
     path(
         "/change/<int:pk>/",
