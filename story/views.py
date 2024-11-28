@@ -125,19 +125,11 @@ class StoryCreateAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthor]
 
     def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
         serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
-        # category
-        category_names = data.pop("categories", [])[0].split(",")
-        category_ids = Category.objects.filter(name__in=category_names).values_list(
-            "id", flat=True
-        )
-        if len(category_names) != len(category_ids):
-            raise NotFound("Category not found!")
-        data["categories"] = list(category_ids)
-
         # tag
         tag_names = data.pop("tags", [])
         if tag_names:
@@ -150,22 +142,19 @@ class StoryCreateAPIView(generics.CreateAPIView):
             data["tags"] = list(tag_ids)
 
         serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response(
-            data="Story created successfully.", status=status.HTTP_201_CREATED
-        )
+        return Response(serializer.data)
 
 
 class StoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    lookup_field = "slug"
+    lookup_field = "id"
     queryset = Story.objects.all()
     serializer_class = StorySerializer
     permission_classes = [IsAuthor]
 
 
 class StoryDetailAPIView(generics.RetrieveAPIView):
-    lookup_field = "slug"
+    lookup_field = "id"
     queryset = Story.objects.all()
     serializer_class = StoryDetailSerializer
     permission_classes = []

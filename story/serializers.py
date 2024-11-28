@@ -25,7 +25,6 @@ class ChapterSerializer(serializers.ModelSerializer):
 
 class StorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
-    chapters = ChapterSerializer(many=True)
     categories = CategorySerializer(many=True)
     tags = TagSerializer(many=True)
 
@@ -43,10 +42,10 @@ class StorySerializer(serializers.ModelSerializer):
 
 class StoryDetailSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
-    chapters = ChapterSerializer(many=True, read_only=True)
     categories = CategorySerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     comments = serializers.SerializerMethodField()
+    chapters = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
@@ -61,6 +60,11 @@ class StoryDetailSerializer(serializers.ModelSerializer):
     def get_comments(self, obj):
         comments = Comment.objects.filter(story=obj)
         serializer = CommentSerializer(comments, many=True)
+        return serializer.data
+    
+    def get_chapters(self, obj):
+        chapters = Chapter.objects.filter(story=obj)
+        serializer = ChapterSerializer(chapters, many=True)
         return serializer.data
 
 class ChapterCreatorSerializer(serializers.ModelSerializer):
@@ -82,35 +86,13 @@ class ChapterCreatorSerializer(serializers.ModelSerializer):
         return value
 
 class StoryCreatorSerializer(serializers.ModelSerializer):
-    categories = serializers.ListField(
-        child=serializers.ListField(child=serializers.IntegerField())
-    )
-    tags = serializers.ListField(
-        required=False, child=serializers.ListField(child=serializers.IntegerField())
-    )
-
     class Meta:
         model = Story
         fields = "__all__"
         read_only_fields = (
+            "id",
             "created_at",
             "modified_date",
             "slug",
             "user",
         )
-
-    def validate_categories(self, value):
-        category_ids = []
-        for name in value:
-            for n in name:
-                category = Category.objects.get(id=str(n))
-                category_ids.append(category.id)
-        return category_ids
-
-    def validate_tags(self, value):
-        tag_ids = []
-        for name in value:
-            for n in name:
-                tag = Tag.objects.get(id=str(n))
-                tag_ids.append(tag.id)
-        return tag_ids
