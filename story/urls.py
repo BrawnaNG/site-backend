@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (
-    CreateSaveStoryAPIView,
+    SaveStoryAPIView,
     DeleteSavedStoryAPIView,
     SavedStoriesAPIView,
     SearchView,
@@ -31,6 +31,6 @@ urlpatterns = [
     path("/search/", SearchView.as_view()),
     path("/detail/<int:id>/", StoryDetailAPIView.as_view(), name="story-detail"),
     path("/save-story-list/", SavedStoriesAPIView.as_view()),
-    path("/save-story/<int:id>/", CreateSaveStoryAPIView.as_view()),
+    path("/save-story/<int:id>/", SaveStoryAPIView.as_view()),
     path("/delete-saved-story/<int:id>/", DeleteSavedStoryAPIView.as_view()),
 ]
