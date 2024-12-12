@@ -8,9 +8,17 @@ from rest_framework.views import APIView
 from accounts.permissions import IsAdmin, IsAuth, IsAuthor
 from category.models import Category
 from tag.models import Tag
+import html
 
-from .models import Story
-from .serializers import StoryCreatorSerializer, StoryDetailSerializer, StorySerializer, ChapterCreatorSerializer
+from .models import Story, Chapter
+from .serializers import (
+    StorySerializer,
+    StoryDetailSerializer,
+    StoryCreatorSerializer,
+    ChapterSerializer,
+    ChapterDetailSerializer,
+    ChapterCreatorSerializer
+)
 
 
 class SearchView(generics.ListAPIView):
@@ -170,17 +178,49 @@ class SavedStoriesAPIView(generics.ListAPIView):
         return user.saved_stories.all()
 
 
-class CreateSaveStoryAPIView(APIView):
+class SaveStoryAPIView(APIView):
     permission_classes = [IsAuth]
 
-    def post(self, request, story_slug, *args, **kwargs):
+    def post(self, request, id, *args, **kwargs):
         user = request.user
         try:
-            story = Story.objects.get(slug=story_slug)
+            story = Story.objects.get(id=id)
         except Story.DoesNotExist:
             raise NotFound("Story not found!")
+        
+        data = request.data.copy()
+        body = html.escape(data.pop("body"))
+        chapter_data = {
+            "body": body,
+            "story": story.id,
+            "user": user.id
+        }
 
-        user.saved_stories.add(story)
+        chapter_id = data.pop("chapter_id")
+        if chapter_id:
+            chapter = Chapter.objects.get(id=chapter_id)
+            chapter.body = body
+            chapter.save()
+        else:
+            serializer = ChapterCreatorSerializer(data = chapter_data)
+            if (serializer.is_valid()):
+                chapter = serializer.create(serializer.validated_data)
+
+        title = data.pop("title")
+        story_data = {
+            "title": title,
+            "categories": list(story.categories.values_list()),
+            "tags": list(story.tags.values_list())
+        }
+        serializer = StorySerializer(data = story_data)
+        try:
+            if (serializer.is_valid(raise_exception=True)):
+                story.title = serializer.validated_data["title"]
+                story.save()
+                user.saved_stories.add(story)
+        except Exception as exc:
+            raise exc
+
         return Response({"detail": "Story saved successfully."})
 
 

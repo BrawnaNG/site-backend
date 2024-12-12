@@ -1,5 +1,6 @@
 from django.utils.html import strip_tags
 from rest_framework import serializers
+import html
 
 from category.models import Category
 from category.serializers import CategorySerializer
@@ -22,7 +23,6 @@ class ChapterSerializer(serializers.ModelSerializer):
             "user",
         )
 
-
 class StorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
     categories = CategorySerializer(many=True)
@@ -39,6 +39,21 @@ class StorySerializer(serializers.ModelSerializer):
             "user",
         )
 
+class ChapterDetailSerializer(serializers.ModelSerializer):
+    body = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Chapter
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "created_at",
+            "modified_date",
+            "user",
+        )
+    
+    def get_body(self, obj):
+        return html.unescape(obj.body)
 
 class StoryDetailSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
@@ -64,7 +79,7 @@ class StoryDetailSerializer(serializers.ModelSerializer):
     
     def get_chapters(self, obj):
         chapters = Chapter.objects.filter(story=obj)
-        serializer = ChapterSerializer(chapters, many=True)
+        serializer = ChapterDetailSerializer(chapters, many=True)
         return serializer.data
 
 class ChapterCreatorSerializer(serializers.ModelSerializer):
@@ -74,8 +89,7 @@ class ChapterCreatorSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "created_at",
-            "modified_date",
-            "user",
+            "modified_date"
         )
 
     def validate_body(self, value):
