@@ -12,6 +12,7 @@ from .views import (
     StoryRetrieveUpdateDestroyAPIView,
     StoryFeaturedAPIView,
     ChapterCreateAPIView,
+    ChapterDetailAPIView,
 )
 
 app_name = "story"
@@ -30,6 +31,7 @@ urlpatterns = [
     path("/featured/", StoryFeaturedAPIView.as_view(), name="story-featured"),
     path("/search/", SearchView.as_view()),
     path("/detail/<int:id>/", StoryDetailAPIView.as_view(), name="story-detail"),
+    path("/chapter/<int:id>/", ChapterDetailAPIView.as_view(), name="chapter-detail"),
     path("/save-story-list/", SavedStoriesAPIView.as_view()),
     path("/save-story/<int:id>/", SaveStoryAPIView.as_view()),
     path("/delete-saved-story/<int:id>/", DeleteSavedStoryAPIView.as_view()),

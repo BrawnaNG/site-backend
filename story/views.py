@@ -17,7 +17,8 @@ from .serializers import (
     StoryCreatorSerializer,
     ChapterSerializer,
     ChapterDetailSerializer,
-    ChapterCreatorSerializer
+    ChapterCreatorSerializer,
+    ChapterIdSerializer
 )
 
 
@@ -167,6 +168,11 @@ class StoryDetailAPIView(generics.RetrieveAPIView):
     serializer_class = StoryDetailSerializer
     permission_classes = []
 
+class ChapterDetailAPIView(generics.RetrieveAPIView):
+    lookup_field = "id"
+    queryset = Chapter.objects.all()
+    serializer_class = ChapterDetailSerializer
+    permission_classes = []
 
 class SavedStoriesAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
@@ -209,6 +215,7 @@ class SaveStoryAPIView(APIView):
         title = data.pop("title")
         story_data = {
             "title": title,
+            "has_chapters": data.pop("has_chapters"),
             "categories": list(story.categories.values_list()),
             "tags": list(story.tags.values_list())
         }
@@ -216,13 +223,13 @@ class SaveStoryAPIView(APIView):
         try:
             if (serializer.is_valid(raise_exception=True)):
                 story.title = serializer.validated_data["title"]
+                story.has_chapters = serializer.validated_data["has_chapters"]
                 story.save()
                 user.saved_stories.add(story)
         except Exception as exc:
             raise exc
 
         return Response({"detail": "Story saved successfully."})
-
 
 class DeleteSavedStoryAPIView(generics.DestroyAPIView):
     serializer_class = StorySerializer
