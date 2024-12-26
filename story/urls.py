@@ -13,6 +13,7 @@ from .views import (
     StoryFeaturedAPIView,
     ChapterCreateAPIView,
     ChapterDetailAPIView,
+    SaveChapterAPIView,
 )
 
 app_name = "story"
@@ -34,5 +35,6 @@ urlpatterns = [
     path("/chapter/<int:id>/", ChapterDetailAPIView.as_view(), name="chapter-detail"),
     path("/save-story-list/", SavedStoriesAPIView.as_view()),
     path("/save-story/<int:id>/", SaveStoryAPIView.as_view()),
+    path("/save-chapter/<int:id>/", SaveChapterAPIView.as_view()),
     path("/delete-saved-story/<int:id>/", DeleteSavedStoryAPIView.as_view()),
 ]

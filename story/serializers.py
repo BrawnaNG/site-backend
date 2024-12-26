@@ -11,7 +11,6 @@ from tag.serializers import TagSerializer
 
 from .models import Story, Chapter
 
-
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
