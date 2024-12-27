@@ -25,7 +25,7 @@ urlpatterns = [
         name="story-change",
     ),
     path("/add/", StoryCreateAPIView.as_view(), name="story-create"),
-    path("/chapter/add", ChapterCreateAPIView.as_view(), name="chapter-create"),
+    path("/<int:storyid>/chapter/add/", ChapterCreateAPIView.as_view(), name="chapter-create"),
     path("/search/", SearchView.as_view(), name="search"),
     path("/list/", StoryListAPIView.as_view(), name="story-list"),
     path("/mine/", StoryMineAPIView.as_view(), name="story-mine"),

@@ -12,6 +12,8 @@ from tag.serializers import TagSerializer
 from .models import Story, Chapter
 
 class ChapterSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source="user.alias")
+    story = serializers.ReadOnlyField(source="story.id")
     class Meta:
         model = Chapter
         fields = "__all__"
@@ -19,8 +21,15 @@ class ChapterSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "modified_date",
-            "user",
+            "user"
         )
+    
+    def validate_body(self, value):
+        if strip_tags(value) != value:
+            raise serializers.ValidationError(
+                "Chapter body should not contain HTML tags."
+            )
+        return value   
 
 class StorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
@@ -33,7 +42,6 @@ class StorySerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "created_at",
-            "modified_date",
             "slug",
             "user",
         )
@@ -92,23 +100,6 @@ class ChapterIdSerializer(serializers.ModelSerializer):
             "id",
             "modified_at"
         )
-
-class ChapterCreatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chapter
-        fields = "__all__"
-        read_only_fields = (
-            "id",
-            "created_at",
-            "modified_date"
-        )
-
-    def validate_body(self, value):
-        if strip_tags(value) != value:
-            raise serializers.ValidationError(
-                "Chapter body should not contain HTML tags."
-            )
-        return value
 
 class StoryCreatorSerializer(serializers.ModelSerializer):
     class Meta:

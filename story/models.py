@@ -14,8 +14,8 @@ from tag.models import Tag
 
 class Story(models.Model):
     title = models.CharField(blank=False, null=False, max_length=255)
-    brief = models.TextField(blank=True, null=True)
-    slug = models.SlugField(unique=True, blank=True)
+    brief = models.TextField(blank=True, default="")
+    slug = models.SlugField(unique=True, blank=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -27,17 +27,19 @@ class Story(models.Model):
     has_chapters = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def create(self, *args, **kwargs):
         self.slug = slugify(self.title)[:20]
-        if Story.objects.filter(slug=self.slug).exists():
-            extra = str(randint(1, 10000000))
-            self.slug = slugify(self.title)[:20] + "-" + extra
+        if Story.objects.filter(slug=self.slug).exclude(id=self.id).exists():
+            self.slug = slugify(self.title)[:20] + "-" + str(self.id)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
 
 class Chapter(models.Model):
-    title = models.CharField(blank=True, null=True, max_length=255)
+    title = models.CharField(blank=True, max_length=255, default="")
     body = models.TextField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

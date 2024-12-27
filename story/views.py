@@ -2,13 +2,15 @@ from rest_framework import generics
 from django.db.models import Q
 from django.forms.models import model_to_dict
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import (
+    NotFound,
+    ValidationError
+)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import (
     APIView,
 )
-
 from accounts.permissions import IsAdmin, IsAuth, IsAuthor
 from category.models import Category
 from tag.models import Tag
@@ -20,9 +22,7 @@ from .serializers import (
     StoryDetailSerializer,
     StoryCreatorSerializer,
     ChapterSerializer,
-    ChapterDetailSerializer,
-    ChapterCreatorSerializer,
-    ChapterIdSerializer
+    ChapterDetailSerializer
 )
 
 class SearchView(generics.ListAPIView):
@@ -115,55 +115,12 @@ class StoryFeaturedAPIView(generics.RetrieveAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
-class ChapterCreateAPIView(generics.CreateAPIView):
-    serializer_class = ChapterCreatorSerializer
-    permission_classes = [IsAuthor]
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(
-            data="Chapter created successfully.", status=status.HTTP_201_CREATED
-        )
-
-class StoryCreateAPIView(generics.CreateAPIView):
-    serializer_class = StoryCreatorSerializer
-    permission_classes = [IsAuthor]
-
-    def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        # tag
-        tag_names = data.pop("tags", [])
-        if tag_names:
-            tag_names = tag_names[0].split(",")
-            tag_ids = Tag.objects.filter(name__in=tag_names).values_list(
-                "id", flat=True
-            )
-            if len(tag_names) != len(tag_ids):
-                raise NotFound("Tag not found!")
-            data["tags"] = list(tag_ids)
-
-        serializer = self.get_serializer(data=data)
-        self.perform_create(serializer)
-        return Response(serializer.data)
-
 
 class StoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "id"
     queryset = Story.objects.all()
     serializer_class = StorySerializer
     permission_classes = [IsAuthor]
-
 
 class StoryDetailAPIView(generics.RetrieveAPIView):
     lookup_field = "id"
@@ -186,31 +143,126 @@ class SavedStoriesAPIView(generics.ListAPIView):
         user = self.request.user
         return user.saved_stories.all()
 
+class ChapterCreateAPIView(generics.CreateAPIView):
+    serializer_class = ChapterSerializer
+    permission_classes = [IsAuthor]
+
+    def perform_create(self, serializer):
+        try:
+            story_id = self.kwargs["storyid"]
+            story = Story.objects.get(id=story_id)
+            if serializer.is_valid():
+                serializer.save(user=self.request.user, story=story)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Story.DoesNotExist:
+            raise ValidationError("Invalid story id provided.")
+        except KeyError:
+            raise ValidationError("Story id is missing from URL.")
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data["body"] = html.escape(data.pop("body"))
+        serializer = self.get_serializer(data=data)
+        self.perform_create(serializer)
+        return Response(
+            data="Chapter created successfully.", status=status.HTTP_201_CREATED
+        )
+
 class SaveChapterAPIView(generics.UpdateAPIView):
     serializer_class = ChapterSerializer
     permission_classes = [IsAuthor]
-    lookup_field = "id"
     queryset = Chapter.objects.all()
+    lookup_field = "id"
+
+    def get_object(self):
+        return self.queryset.get(id=self.kwargs.get("id"))
+    
+    def put(self, request, *args, **kwargs):
+        chapter = self.get_object()
+        data = request.data.copy()
+        data["body"] = html.escape(data.pop("body"))
+        serializer = self.get_serializer(data=data)
+
+        if serializer.is_valid():
+            title = serializer.validated_data["title"]
+            body = serializer.validated_data["body"]
+            chapter.title = title
+            chapter.body = body
+            chapter.save()
+            return Response({"status": "chapter saved"})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StoryCreateAPIView(generics.CreateAPIView):
+    serializer_class = StoryCreatorSerializer
+    permission_classes = [IsAuthor]
+
+    def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
+        serializer.create(user = self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        self.perform_create(serializer)
+        return Response(serializer.data)
 
 class SaveStoryAPIView(generics.UpdateAPIView):
     serializer_class = StorySerializer
     permission_classes = [IsAuthor]
     queryset = Story.objects.all()
+    lookup_field = "id"
 
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_object(self):
+        return self.queryset.get(id=self.kwargs.get("id"))
 
     def put(self, request, *args, **kwargs):
+        story = self.get_object()
         data = request.data.copy()
-        serializer = self.get_serializer(data=data)
-        if serializer.is_valid():
-            self.perform_update(serializer)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(
-            data="Story saved successfully.", status=status.HTTP_200_OK
-        )
+        tag_names = data.pop("tags", [])
+        if tag_names:
+            tag_names = tag_names[0].split(",")
+            tag_ids = Tag.objects.filter(name__in=tag_names).values_list(
+                "id", flat=True
+            )
+            if len(tag_names) != len(tag_ids):
+                raise NotFound("Tag not found!")
+            data["tags"] = list(tag_ids)
+        else:
+            data["tags"] = []
+
+        category_names = data.pop("categories", [])
+        if category_names:
+            category_names = category_names[0].split(",")
+            category_ids = Category.objects.filter(name__in=category_names).values_list(
+                "id", flat=True
+            )
+            if len(category_names) != len(category_ids):
+                raise NotFound("Category not found!")
+            data["categories"] = list(category_ids)
+        else:
+            data["categories"] = []
+
+        serializer = self.get_serializer(data=data)
+
+        if serializer.is_valid():
+            title = serializer.validated_data["title"]
+            is_published = serializer.validated_data["is_published"]
+            has_chapters = serializer.validated_data["has_chapters"]
+            tags = serializer.validated_data["tags"]
+            categories = serializer.validated_data["categories"]
+            story.title = title
+            story.is_published = is_published
+            story.has_chapters = has_chapters
+            story.tags.set(tags)
+            story.categories.set(categories)
+            story.save()
+            return Response({"status": "story saved"})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class DeleteSavedStoryAPIView(generics.DestroyAPIView):
     serializer_class = StorySerializer
@@ -218,9 +270,9 @@ class DeleteSavedStoryAPIView(generics.DestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         user = request.user
-        story_id = self.kwargs.get("story_slug")
+        story_id = self.kwargs.get("id")
         try:
-            story = user.saved_stories.get(slug=story_id)
+            story = user.saved_stories.get(id=story_id)
         except Story.DoesNotExist:
             raise NotFound("Story not found in saved stories!")
 
