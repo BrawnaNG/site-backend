@@ -22,7 +22,8 @@ from .serializers import (
     StoryDetailSerializer,
     StoryCreatorSerializer,
     ChapterSerializer,
-    ChapterDetailSerializer
+    ChapterDetailSerializer,
+    TagSerializer
 )
 
 class SearchView(generics.ListAPIView):
@@ -222,25 +223,30 @@ class SaveStoryAPIView(generics.UpdateAPIView):
         story = self.get_object()
         data = request.data.copy()
 
-        tag_names = data.pop("tags", [])
-        if tag_names:
-            tag_names = tag_names[0].split(",")
-            tag_ids = Tag.objects.filter(name__in=tag_names).values_list(
-                "id", flat=True
-            )
-            if len(tag_names) != len(tag_ids):
-                raise NotFound("Tag not found!")
+        tags = data.pop("tags", [])
+        if tags:
+            new_tags = [x for x in tags if not x.get('id')]
+            tag_ids = [x['id'] for x in tags if x.get('id')]            
+            for (tag) in new_tags:
+                existing_tag = Tag.objects.filter(name__iexact=tag["name"])
+                if (existing_tag):
+                    tag_ids.append(existing_tag.id)
+                else:
+                    serializer = TagSerializer(data=tag)
+                    if (serializer.is_valid()):
+                        new_tag = serializer.save(user=self.request.user)
+                        tag_ids.append(new_tag.id)
             data["tags"] = list(tag_ids)
         else:
             data["tags"] = []
 
-        category_names = data.pop("categories", [])
-        if category_names:
-            category_names = category_names[0].split(",")
-            category_ids = Category.objects.filter(name__in=category_names).values_list(
+        categories = data.pop("categories", [])
+        if categories:
+            category_ids = [x['id'] for x in categories]
+            check_ids = Category.objects.filter(id__in=category_ids).values_list(
                 "id", flat=True
             )
-            if len(category_names) != len(category_ids):
+            if len(check_ids) != len(category_ids):
                 raise NotFound("Category not found!")
             data["categories"] = list(category_ids)
         else:

@@ -33,8 +33,8 @@ class ChapterSerializer(serializers.ModelSerializer):
 
 class StorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
-    categories = CategorySerializer(many=True)
-    tags = TagSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Tag.objects.all())
+    categories = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Category.objects.all())
 
     class Meta:
         model = Story

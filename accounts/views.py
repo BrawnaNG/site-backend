@@ -26,14 +26,16 @@ from .serializers import (
 
 class UserRoleListAPIView(APIView):
     serializer_class = UserRoleSerializer
-    permission_classes = [IsAuthenticated]
-
     def get(self, request):
         user = request._user
-        if user:
+        if user and user.is_authenticated:
             serializer = self.serializer_class(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            reader = {
+                "role" : "reader"
+            }
+        return Response(reader, status=status.HTTP_200_OK)
     
 class RegistrationAPIView(APIView):
     serializer_class = RegistrationSerializer
