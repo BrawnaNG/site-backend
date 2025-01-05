@@ -42,3 +42,9 @@ cnx.close()
     #tags = models.ManyToManyField(Tag, blank=True)
     #categories = models.ManyToManyField(Category)
     #chapters = models.ManyToManyField("self", blank=True, null=True, symmetrical=False)
+
+
+#
+# Story with category and tags
+#
+# SELECT post.ID, post.post_title, terms.term_id, terms.name FROM wp_posts AS post JOIN wp_term_relationships AS relationship on post.ID = relationship.object_id JOIN wp_term_taxonomy AS taxonomy on relationship.term_taxonomy_id = taxonomy.term_taxonomy_id JOIN wp_terms as terms on taxonomy.term_id = terms.term_id where post.post_author not in (0, 1) LIMIT 1000;
