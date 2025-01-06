@@ -139,3 +139,4 @@ GitHub.sublime-settings
 
 # vim
 *.swp
+node_modules/.yarn-integrity
