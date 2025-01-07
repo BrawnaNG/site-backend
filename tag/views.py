@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -34,7 +34,14 @@ class TagAddAPIView(generics.CreateAPIView):
     permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
+        data = self.request.data.copy()
+        name = data.pop("name")
+        existing_tag = Tag.objects.filter(name__iexact=name)
+        if (existing_tag):
+            return Response(existing_tag,status=status.HTTP_200_OK)
+
         serializer.save(user=self.request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class TagRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):

@@ -6,7 +6,7 @@ app_name = "tag"
 
 
 urlpatterns = [
-    path("/add", TagAddAPIView.as_view(), name="tag-add"),
+    path("/add/", TagAddAPIView.as_view(), name="tag-add"),
     path(
         "/change/<str:name>/",
         TagRetrieveUpdateDestroyView.as_view(),

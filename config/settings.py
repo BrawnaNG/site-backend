@@ -143,12 +143,13 @@ AUTH_USER_MODEL = "accounts.User"
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "accounts.jwt.CustomJWTAuthentication",
-    ],
     "PAGE_SIZE": 10,
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
 }
+
 AUTH_TOKEN_CLASSES = [
     "rest_framework_simplejwt.tokens.AccessToken",
 ]
