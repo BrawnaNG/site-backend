@@ -67,7 +67,7 @@ class StoryDetailSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     comments = serializers.SerializerMethodField()
-    chapter_ids = serializers.SerializerMethodField()
+    chapters = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
@@ -84,21 +84,23 @@ class StoryDetailSerializer(serializers.ModelSerializer):
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
     
-    def get_chapter_ids(self, obj):
+    def get_chapters(self, obj):
         chapters = Chapter.objects.filter(story=obj)
-        serializer = ChapterIdSerializer(chapters, many=True)
+        serializer = ChapterSummarySerializer(chapters, many=True)
         return serializer.data
 
-class ChapterIdSerializer(serializers.ModelSerializer):
+class ChapterSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
         fields = (
             "id",
-            "modified_at"
+            "modified_at",
+            "title"
         )
         read_only_fields = (
             "id",
-            "modified_at"
+            "modified_at",
+            "title"
         )
 
 class StoryCreatorSerializer(serializers.ModelSerializer):

@@ -26,6 +26,7 @@ from .serializers import (
 
 class UserRoleListAPIView(APIView):
     serializer_class = UserRoleSerializer
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         user = request._user
         if user and user.is_authenticated:
