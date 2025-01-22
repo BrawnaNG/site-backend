@@ -8,9 +8,6 @@ from rest_framework.exceptions import (
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.views import (
-    APIView,
-)
 from accounts.permissions import IsAdmin, IsAuth, IsAuthor
 from category.models import Category
 from tag.models import Tag
@@ -42,10 +39,15 @@ class SearchView(generics.ListAPIView):
         elif tag:
             queryset = Story.objects.filter(tags__name__icontains=tag)
         elif query:
-            queryset = Story.objects.filter(
+            queryset2 = Chapter.objects.filter (
                 Q(body__icontains=query)
-                | Q(brief__icontains=query)
                 | Q(user__alias__icontains=query)
+            )
+            story_ids = queryset2.values_list("story_id").distinct()
+            queryset = Story.objects.filter(
+                Q(id__in=story_ids)
+                | Q(brief__icontains=query)
+                | Q(title__icontains=query)
             )
         else:
             # return all stories if no search parameters are provided
@@ -58,17 +60,43 @@ class SearchView(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+class StoryListAdminAPIView(generics.ListAPIView):
+    serializer_class = StorySerializer
+    permission_class = IsAdmin
+
+    def get_queryset(self, username):
+        queryset = Story.objects.all().order_by("-created_at")
+        if (username):
+            queryset = queryset.filter(user__alias__icontains=username)
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        username = self.request.GET.get("username")
+        queryset = self.get_queryset(username)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class StoryListAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
 
-    def get_queryset(self):
+    def get_queryset(self, username, all_stories):
+        
         queryset = Story.objects.all().order_by("-created_at")
-        queryset = queryset.filter(is_published=True)
+        if (not all_stories):
+            queryset = queryset.filter(is_published=True)
+        if (username):
+            queryset = queryset.filter(user__alias__icontains=username)
         return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        username = self.request.GET.get("username")
+        all_stories = self.request.GET.get("all_stories")
+
+        queryset = self.get_queryset(username, all_stories)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -222,6 +250,7 @@ class SaveStoryAPIView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         story = self.get_object()
         data = request.data.copy()
+        user = request.user
 
         tags = data.pop("tags", [])
         if tags:
@@ -266,6 +295,7 @@ class SaveStoryAPIView(generics.UpdateAPIView):
             story.tags.set(tags)
             story.categories.set(categories)
             story.save()
+            user.saved_stories.add(story)
             return Response({"status": "story saved"})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

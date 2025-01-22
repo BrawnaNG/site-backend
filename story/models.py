@@ -52,6 +52,8 @@ class Chapter(models.Model):
         if strip_tags(self.body) != self.body:
             raise ValidationError("Chapter body should not contain HTML tags.")
         super().save(*args, **kwargs)
-
+    
     def __str__(self):
-        return self.title    
+        if self.story:
+            return f"{self.story} > {self.title}"
+        return self.title
