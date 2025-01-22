@@ -14,6 +14,8 @@ from .models import Story, Chapter
 class ChapterSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
     story = serializers.ReadOnlyField(source="story.id")
+    story_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Chapter
         fields = "__all__"
@@ -23,6 +25,11 @@ class ChapterSerializer(serializers.ModelSerializer):
             "modified_date",
             "user"
         )
+
+    def get_story_name(self, obj):
+        if obj.story:
+            return obj.story.name
+        return None
     
     def validate_body(self, value):
         if strip_tags(value) != value:

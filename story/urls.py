@@ -14,6 +14,7 @@ from .views import (
     ChapterCreateAPIView,
     ChapterDetailAPIView,
     SaveChapterAPIView,
+    StoryListAdminAPIView
 )
 
 app_name = "story"
@@ -28,6 +29,7 @@ urlpatterns = [
     path("/<int:storyid>/chapter/add/", ChapterCreateAPIView.as_view(), name="chapter-create"),
     path("/search/", SearchView.as_view(), name="search"),
     path("/list/", StoryListAPIView.as_view(), name="story-list"),
+    path("/list-admin/", StoryListAdminAPIView.as_view(), name="story-list-admin"),
     path("/mine/", StoryMineAPIView.as_view(), name="story-mine"),
     path("/featured/", StoryFeaturedAPIView.as_view(), name="story-featured"),
     path("/search/", SearchView.as_view()),

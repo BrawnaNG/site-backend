@@ -7,6 +7,7 @@ from category.serializers import CategorySerializer
 
 class CategoryListAPIView(generics.ListAPIView):
     serializer_class = CategorySerializer
+    pagination_class = None
 
     def get_queryset(self):
         return Category.objects.all()
@@ -21,7 +22,7 @@ class CategoryCreateAPIView(generics.CreateAPIView):
 
 
 class CategoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    lookup_field = "name"
+    lookup_field = "id"
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdmin]

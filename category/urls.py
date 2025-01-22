@@ -11,8 +11,8 @@ urlpatterns = [
     path("/list/", CategoryListAPIView.as_view(), name="category-list"),
     path("/add/", CategoryCreateAPIView.as_view(), name="category-create"),
     path(
-        "/change/<str:name>/",
+        "/change/<int:id>/",
         CategoryRetrieveUpdateDestroyAPIView.as_view(),
-        name="category-detail",
+        name="category-edit",
     ),
 ]
