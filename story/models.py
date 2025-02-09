@@ -23,6 +23,7 @@ class Story(models.Model):
     categories = models.ManyToManyField(Category)
     is_featured = models.BooleanField(default=False)
     old_brawna_id = models.IntegerField(null=True, blank=True)
+    old_brawna_parent_id = models.IntegerField(null=True, blank=True)
     is_published = models.BooleanField(default=False)
     has_chapters = models.BooleanField(default=False)
 
@@ -45,14 +46,17 @@ class Chapter(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     old_brawna_id = models.IntegerField(null=True, blank=True)
+    old_brawna_parent_id = models.IntegerField(null=True, blank=True)
     is_featured = models.BooleanField(default=False)
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
-        if strip_tags(self.body) != self.body:
+         # If we have an old_brawna_id, it's an import, allow HTML
+         # Not sure if this is a good idea!
+         if strip_tags(self.body) != self.body and self.old_brawna_id == 0:
             raise ValidationError("Chapter body should not contain HTML tags.")
-        super().save(*args, **kwargs)
-    
+         super().save(*args, **kwargs)
+
     def __str__(self):
         if self.story:
             return f"{self.story} > {self.title}"
