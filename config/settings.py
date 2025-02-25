@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # False positive from W002. Removing the '/' at the beginning breaks the api
 SILENCED_SYSTEM_CHECKS = ["urls.W002"]
