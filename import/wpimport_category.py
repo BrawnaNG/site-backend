@@ -2,15 +2,24 @@ import os
 import django
 import sys
 
+sys.path.append(os.path.abspath(os.path.join(__file__, *[os.pardir] * 2)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from category.models import Category
 import mysql.connector
 
+DBUSER="brawna"
+DBPASS="brawna"
+DBHOST="localhost"
+DBNAME="wordpress"
+
+debug = False
+
 def LoadCursor(cursor):
     for (wp_term_id, name, description, parent_id) in cursor:
-        print(f"Loading category '{name}', with parent of '{parent_id}'")
+        if debug:
+            print(f"Loading category '{name}', with parent of '{parent_id}'")
         try:
             parent = Category.objects.get(old_brawna_term_id=parent_id)
             Category.objects.create(old_brawna_term_id=wp_term_id,
@@ -45,9 +54,9 @@ for wp_term_id, name, desc in TopLevelCategories:
     except django.db.utils.IntegrityError:
         print(f"Category {name} already exists")
 
-cnx = mysql.connector.connect(user='wpuser', password='wpuser123',
-                              host='devdb.brawna.org',
-                              database='wordpress')
+cnx = mysql.connector.connect(user=DBUSER, password=DBPASS,
+                              host=DBHOST,
+                              database=DBNAME)
 cursor = cnx.cursor()
 
 #
