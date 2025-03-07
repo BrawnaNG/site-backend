@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from accounts.permissions import IsAdmin, IsAuth, IsAuthor
 from category.models import Category
 from tag.models import Tag
+from accounts.models import User
 import html
 
 from .models import Story, Chapter
@@ -19,36 +20,28 @@ from .serializers import (
     StoryDetailSerializer,
     StoryCreatorSerializer,
     ChapterSerializer,
-    ChapterDetailSerializer,
-    TagSerializer
+    ChapterDetailSerializer
 )
 
-class SearchView(generics.ListAPIView):
+from tag.serializers import TagSearchSerializer
+from accounts.serializers import UserSerializer
+
+class SearchStoryView(generics.ListAPIView):
     serializer_class = StorySerializer
 
     def get_queryset(self):
         query = self.request.GET.get("q")
-        category = self.request.GET.get("category")
-        user = self.request.GET.get("user")
-        tag = self.request.GET.get("tag")
-
-        if category:
-            queryset = Story.objects.filter(categories__name__icontains=category)
-        elif user:
-            queryset = Story.objects.filter(user__alias__icontains=user)
-        elif tag:
-            queryset = Story.objects.filter(tags__name__icontains=tag)
-        elif query:
-            queryset2 = Chapter.objects.filter (
+        if query:
+            queryset_ids = Chapter.objects.filter (
                 Q(body__icontains=query)
                 | Q(user__alias__icontains=query)
             )
-            story_ids = queryset2.values_list("story_id").distinct()
+            story_ids = queryset_ids.values_list("story_id").distinct()
             queryset = Story.objects.filter(
                 Q(id__in=story_ids)
                 | Q(brief__icontains=query)
                 | Q(title__icontains=query)
-            )
+            ).order_by("title")
         else:
             # return all stories if no search parameters are provided
             queryset = Story.objects.none()
@@ -57,8 +50,56 @@ class SearchView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+class SearchAuthorView(generics.ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        user = self.request.GET.get("author")
+        if user:
+            queryset = User.objects.filter(alias__icontains=user).order_by("alias")
+        else:
+            # return all stories if no search parameters are provided
+            queryset = User.objects.none()
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+class SearchTagView(generics.ListAPIView):
+    serializer_class = TagSearchSerializer
+
+    def get_queryset(self):
+        tag = self.request.GET.get("tag")
+        if tag:
+            queryset = Tag.objects.filter(name__icontains=tag).order_by("name")
+        else:
+            # return all stories if no search parameters are provided
+            queryset = Tag.objects.none()
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)   
 
 class StoryListAdminAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
