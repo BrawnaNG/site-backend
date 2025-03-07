@@ -42,6 +42,7 @@ class StorySerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Tag.objects.all())
     categories = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Category.objects.all())
+    first_category = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
@@ -52,6 +53,12 @@ class StorySerializer(serializers.ModelSerializer):
             "slug",
             "user",
         )
+
+    def get_first_category(self, obj):
+        cat = obj.categories.first()
+        if cat:
+            return cat.name
+        return None
 
 class ChapterDetailSerializer(serializers.ModelSerializer):
     body = serializers.SerializerMethodField()

@@ -19,7 +19,7 @@ class Story(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, blank=True)
     categories = models.ManyToManyField(Category)
     is_featured = models.BooleanField(default=False)
     old_brawna_id = models.IntegerField(null=True, blank=True)
