@@ -269,15 +269,18 @@ class StoryCreateAPIView(generics.CreateAPIView):
     serializer_class = StoryCreatorSerializer
     permission_classes = [IsAuthor]
 
-    def perform_create(self, serializer):
-        serializer.is_valid(raise_exception=True)
-        serializer.create(user = self.request.user)
-
     def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        serializer = self.get_serializer(data=data)
-        self.perform_create(serializer)
-        return Response(serializer.data)
+        try:
+            data = request.data.copy()
+            data["user"] = self.request.user.id
+            serializer = self.serializer_class(data=data)
+            if (serializer.is_valid()):
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response({"error": "Unable to create story"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            return Response({"error": "Unable to create story"}, status=status.HTTP_400_BAD_REQUEST)
 
 class SaveStoryAPIView(generics.UpdateAPIView):
     serializer_class = StorySerializer

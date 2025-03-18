@@ -8,6 +8,7 @@ from comment.models import Comment
 from comment.serializers import CommentSerializer
 from tag.models import Tag
 from tag.serializers import TagSerializer
+from django.utils.text import slugify
 
 from .models import Story, Chapter
 
@@ -126,5 +127,19 @@ class StoryCreatorSerializer(serializers.ModelSerializer):
             "created_at",
             "modified_date",
             "slug",
-            "user",
         )
+
+    def create(self, validated_data):
+        title = title=validated_data["title"]
+        slug = slugify(title)[:20]
+        i = 1
+        while Story.objects.filter(slug=slug).exists():
+            slug = slugify(self.title)[:20] + "-" + str(i)
+            i = i +1
+        story = Story.objects.create(
+            title=title,
+            slug = slug,
+            user=validated_data["user"],
+        )
+        story.save()
+        return story
