@@ -9,6 +9,7 @@ from comment.serializers import CommentSerializer
 from tag.models import Tag
 from tag.serializers import TagSerializer
 from django.utils.text import slugify
+from django.utils.text import Truncator
 
 from .models import Story, Chapter
 
@@ -44,6 +45,7 @@ class StorySerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Tag.objects.all())
     categories = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Category.objects.all())
     first_category = serializers.SerializerMethodField()
+    excerpt = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
@@ -59,6 +61,15 @@ class StorySerializer(serializers.ModelSerializer):
         cat = obj.categories.first()
         if cat:
             return cat.name
+        return None
+    
+    def get_excerpt(self, obj):
+        chapter = Chapter.objects.filter(story=obj).first()
+        if chapter:
+            chapter_body = html.unescape(chapter.body)
+            if chapter_body and len(chapter_body) > 0:
+                truncator = Truncator(html.unescape(chapter_body))
+                return truncator.words(50,truncate="...")
         return None
 
 class ChapterDetailSerializer(serializers.ModelSerializer):
