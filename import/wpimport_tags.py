@@ -1,4 +1,4 @@
-import os
+import os, sys
 import django
 
 sys.path.append(os.path.abspath(os.path.join(__file__, *[os.pardir] * 2)))

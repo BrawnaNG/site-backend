@@ -61,7 +61,7 @@ for (ID, post_name, post_date, post_author, post_title,
         query = (f"SELECT ID, post_name, post_date, post_author, post_title, \
                  post_content \
                  FROM wp_posts WHERE post_name LIKE '{post_name}-chapter-%' \
-                 AND post_author=3915 order by post_author;")
+                 AND post_author='{post_author}' order by post_author;")
         cnx.reconnect()
         cursor.execute(query)
         children = cursor.fetchall()
@@ -78,7 +78,7 @@ for (ID, post_name, post_date, post_author, post_title,
                 slug = post_name,
                 created_at = post_date,
                 # brief = post_content,
-                has_chapters = True,
+                has_chapters = False,
                 old_brawna_id = ID,
                 old_brawna_parent_id = 0
             )
@@ -147,15 +147,14 @@ for (ID, post_name, post_date, post_author,post_title,
     except:
         print("Did not connect {ID} to parent {post_parent}, might be a sub-chapter")
 
-
     chapter = Chapter.objects.create(
         user = user,
         title = post_title,
         created_at = post_date,
         body = post_content,
         old_brawna_id = ID,
-        old_brawna_parent_id = parent_brawna_id,
-        story = story,
+        old_brawna_parent_id = parent.old_brawna_id,
+        story = parent,
     )
 
 cnx.close()
