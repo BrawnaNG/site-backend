@@ -80,7 +80,8 @@ for (ID, post_name, post_date, post_author, post_title,
                 # brief = post_content,
                 has_chapters = False,
                 old_brawna_id = ID,
-                old_brawna_parent_id = 0
+                old_brawna_parent_id = 0,
+                is_published = True
             )
             if debug:
                 print("Put the content in a Chapter, connect that to the Story just created")
@@ -108,7 +109,8 @@ for (ID, post_name, post_date, post_author, post_title,
                 # brief = post_content,
                 has_chapters = True,
                 old_brawna_id = ID,
-                old_brawna_parent_id = 0
+                old_brawna_parent_id = 0,
+                is_published = True
             )
             parent_brawna_id = ID
             for (ID, post_name, post_date, post_author, post_title, post_content) in children:
