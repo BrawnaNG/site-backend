@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
@@ -27,13 +28,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-ap+rrgk$#dzic)-har4=b(5n=9t(wmu%%alsh&=ts&w7qb6r=_"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY","django-insecure-ap+rrgk$#dzic)-har4=b(5n=9t(wmu%%alsh&=ts&w7qb6r=_")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG",True)
 
 ALLOWED_HOSTS = ["*"]
-CLIENT_BASE_URL = "127.0.0.1:8000"
+CLIENT_BASE_URL = os.getenv("DJANGO_BASE_URL","127.0.0.1:8000")
 
 # Application definition
 
@@ -95,8 +96,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.getenv("DJANGO_DB_ENGINE","django.db.backends.sqlite3"),
+        "HOST": os.getenv("DJANGO_DB_HOST",""),
+        "NAME": os.getenv("DJANGO_DB_NAME",""),
+        "USER": os.getenv("DJANGO_DB_USER",""),
+        "PASS": os.getenv("DJANGO_DB_PASS",""),
+        "PORT": os.getenv("DJANGO_DB_PORT",""),
     }
 }
 
@@ -180,7 +185,7 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-    
+
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
