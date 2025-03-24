@@ -98,7 +98,7 @@ DATABASES = {
     "default": {
         "ENGINE": os.getenv("DJANGO_DB_ENGINE","django.db.backends.sqlite3"),
         "HOST": os.getenv("DJANGO_DB_HOST",""),
-        "NAME": os.getenv("DJANGO_DB_NAME",""),
+        "NAME": os.getenv("DJANGO_DB_NAME",BASE_DIR / "db.sqlite3"),
         "USER": os.getenv("DJANGO_DB_USER",""),
         "PASS": os.getenv("DJANGO_DB_PASS",""),
         "PORT": os.getenv("DJANGO_DB_PORT",""),
