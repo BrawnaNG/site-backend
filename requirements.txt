@@ -9,6 +9,7 @@ django-cors-headers==4.6.0
 djangorestframework-jwt==1.11.0
 djangorestframework-simplejwt==5.2.2
 djangorestframework==3.14.0
+dotenv==0.9.9
 mypy-extensions==1.0.0
 mysql-connector-python==9.0.0
 packaging==23.0
