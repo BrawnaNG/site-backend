@@ -8,10 +8,7 @@ from category.serializers import CategorySerializer
 class CategoryListAPIView(generics.ListAPIView):
     serializer_class = CategorySerializer
     pagination_class = None
-
-    def get_queryset(self):
-        return Category.objects.all()
-
+    queryset = Category.objects.all()
 
 class CategoryCreateAPIView(generics.CreateAPIView):
     serializer_class = CategorySerializer
@@ -19,7 +16,6 @@ class CategoryCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
 
 class CategoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "id"
