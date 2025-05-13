@@ -100,6 +100,28 @@ class SearchTagView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)   
+    
+class ByCategoryView(generics.ListAPIView):
+    serializer_class = StorySerializer
+
+    def get_queryset(self):
+        category_id = self.kwargs["id"]
+        if category_id:
+            ids = [category_id]
+            queryset = Story.objects.filter(categories__id__in=ids).order_by("-created_at")
+        else:
+            queryset = Story.objects.none()
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)       
 
 class StoryListAdminAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
@@ -305,7 +327,7 @@ class SaveStoryAPIView(generics.UpdateAPIView):
                 if (existing_tag):
                     tag_ids.append(existing_tag.id)
                 else:
-                    serializer = TagSerializer(data=tag)
+                    serializer = TagSearchSerializer(data=tag)
                     if (serializer.is_valid()):
                         new_tag = serializer.save(user=self.request.user)
                         tag_ids.append(new_tag.id)

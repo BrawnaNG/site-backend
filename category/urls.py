@@ -3,7 +3,7 @@ from django.urls import path
 from category.views import (
     CategoryCreateAPIView,
     CategoryListAPIView,
-    CategoryRetrieveUpdateDestroyAPIView,
+    CategoryRetrieveUpdateDestroyAPIView
 )
 
 app_name = "category"
@@ -15,4 +15,5 @@ urlpatterns = [
         CategoryRetrieveUpdateDestroyAPIView.as_view(),
         name="category-edit",
     ),
+    path("/info/<int:id>/",CategoryRetrieveUpdateDestroyAPIView.as_view(),name="category-info"),
 ]
