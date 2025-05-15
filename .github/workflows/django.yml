@@ -40,8 +40,6 @@ jobs:
         USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        scp -o StrictHostKeyChecking=no -i private_key -r dist ${USER_NAME}@${HOSTNAME}:dist-new
-        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
         cd /var/www/stage.brawna.org/backend
         git pull
         sudo apache2ctl graceful '
