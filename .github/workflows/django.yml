@@ -1,0 +1,51 @@
+# SSH into the staging server and:
+# 1. Pull latest changes on staging branch
+# 2. Run migrtations, if needed
+#
+
+name: Django Staging Update
+
+on:
+  push:
+    branches: [ "staging" ]
+
+# See https://github.com/mnapoli/github-to-aws for how the AWS credentials work
+permissions:
+    id-token: write # This is required for requesting the JWT
+    contents: read  # This is required for actions/checkout
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+  steps:
+  - uses: actions/checkout@v4
+
+  - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::413022200594:role/github-deploy-brawnang-site-frontend
+        role-session-name: github-deploy
+        aws-region: us-east-1
+
+    - name: Open SG
+      run: bash devops/open-sg.sh
+
+    - name: End test
+      run: exit
+    - name: Update Django
+      env:
+        PRIVATE_KEY: ${{ secrets.SSH_STAGE_PRIVATE_KEY }}
+        HOSTNAME: ${{ secrets.SSH_STAGE_HOST }}
+        USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
+      run: |
+        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+        scp -o StrictHostKeyChecking=no -i private_key -r dist ${USER_NAME}@${HOSTNAME}:dist-new
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+        cd /var/www/stage.brawna.org/backend
+        git pull
+        sudo apache2ctl graceful '
+
+    - name: Do Django Migrations
+      run: echo "TBD"
