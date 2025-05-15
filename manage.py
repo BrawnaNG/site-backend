@@ -3,8 +3,6 @@
 import os
 import sys
 
-# GitHub Action Test
-
 
 def main():
     """Run administrative tasks."""
