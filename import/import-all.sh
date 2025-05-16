@@ -19,4 +19,5 @@ python wpimport_users.py
 python wpimport_tags.py
 python wpimport_category.py
 python wpimport_story.py
-python wpimport_connect_story_catagory.py
+python wpimport_connect_story_category.py
+python wpimport_connect_story_tag.py
