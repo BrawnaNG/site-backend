@@ -30,7 +30,7 @@ cursor = cnx.cursor()
 
 
 # Get stories and associated catagories
-query = ('SELECT wp_terms.term_id, wp_terms.name, wp_posts.ID FROM  wp_terms \
+query = ('SELECT wp_terms.term_id as id, wp_terms.name as term_name, wp_posts.ID as story_id FROM  wp_terms \
          JOIN wp_term_taxonomy ON wp_terms.term_id = wp_term_taxonomy.term_id \
          JOIN wp_term_relationships ON  wp_term_relationships.term_taxonomy_id = \
                                         wp_term_taxonomy.term_taxonomy_id \

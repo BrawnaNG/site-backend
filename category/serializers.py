@@ -19,8 +19,7 @@ class CategorySerializer(serializers.ModelSerializer):
         return None
     
     def get_story_count(self, obj):
-        ids = [obj.id]
-        return Story.objects.filter(categories__id__in=ids).count()
+        return Story.objects.filter(categories__id=obj.id).count()
 
 class CategoryIdSerializer(serializers.ModelSerializer):
     class Meta:

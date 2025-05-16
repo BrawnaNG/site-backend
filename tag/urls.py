@@ -1,6 +1,12 @@
 from django.urls import path
 
-from tag.views import TagAddAPIView, TagListAPIView, TagRetrieveUpdateDestroyView
+from tag.views import (
+    TagAddAPIView, 
+    TagListAPIView, 
+    TagUpdateView,
+    TagRetrieveView,
+    TagDestroyView
+)
 
 app_name = "tag"
 
@@ -9,8 +15,18 @@ urlpatterns = [
     path("/add/", TagAddAPIView.as_view(), name="tag-add"),
     path(
         "/change/<str:name>/",
-        TagRetrieveUpdateDestroyView.as_view(),
-        name="tag-retrive-update-destroy",
+        TagUpdateView.as_view(),
+        name="tag-update",
+    ),
+    path(
+        "/remove/<str:name>/",
+        TagDestroyView.as_view(),
+        name="tag-remove",
+    ),
+    path(
+        "/info/<int:id>/",
+        TagRetrieveView.as_view(),
+        name="tag-info",
     ),
     path("/", TagListAPIView.as_view(), name="tag-list"),
 ]
