@@ -4,7 +4,6 @@ from accounts.permissions import IsAdmin
 from category.models import Category
 from category.serializers import CategorySerializer
 
-
 class CategoryListAPIView(generics.ListAPIView):
     serializer_class = CategorySerializer
     pagination_class = None
@@ -22,6 +21,12 @@ class CategoryUpdateAPIView(generics.UpdateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdmin]
+
+class CategoryDeleteAPIView(generics.DestroyAPIView):
+    lookup_field = "id"
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdmin]    
 
 class CategoryRetrieveAPIView(generics.RetrieveAPIView):
     lookup_field = "id"
