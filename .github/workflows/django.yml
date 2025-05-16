@@ -7,7 +7,7 @@ name: Django Staging Update
 
 on:
   push:
-    branches: [ "feature/deploy-action" ]
+    branches: [ "staging" ]
 
 # See https://github.com/mnapoli/github-to-aws for how the AWS credentials work
 permissions:
