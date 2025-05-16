@@ -43,8 +43,8 @@ jobs:
         git pull
         sudo apache2ctl graceful '
 
-    - name: Do Django Migrations
-      run: echo "TBD"
+    - name: Do Django Migrations, if needed
+      run: bash devops/djangoMigrations.sh
 
     - name: Close Security Group
       if: always()
