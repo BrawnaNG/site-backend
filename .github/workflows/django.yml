@@ -44,7 +44,10 @@ jobs:
         sudo apache2ctl graceful '
 
     - name: Do Django Migrations, if needed
-      run: bash devops/djangoMigrations.sh
+      run: |
+        cd /var/www/stage.brawna.org/backend
+        source /var/www/stage.brawna.org/stage-venv/bin/activate
+        bash devops/djangoMigrations.sh
 
     - name: Close Security Group
       if: always()
