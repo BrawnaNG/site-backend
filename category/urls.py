@@ -4,7 +4,8 @@ from category.views import (
     CategoryCreateAPIView,
     CategoryListAPIView,
     CategoryUpdateAPIView,
-    CategoryRetrieveAPIView
+    CategoryRetrieveAPIView,
+    CategoryDeleteAPIView
 )
 
 app_name = "category"
@@ -15,6 +16,11 @@ urlpatterns = [
         "/change/<int:id>/",
         CategoryUpdateAPIView.as_view(),
         name="category-edit",
+    ),
+        path(
+        "/remove/<int:id>/",
+        CategoryDeleteAPIView.as_view(),
+        name="category-delete",
     ),
     path("/info/<int:id>/",CategoryRetrieveAPIView.as_view(),name="category-info"),
 ]
