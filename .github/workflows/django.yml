@@ -7,7 +7,7 @@ name: Django Staging Update
 
 on:
   push:
-    branches: [ "staging" ]
+    branches: [ "feature/deploy-action" ]
 
 # See https://github.com/mnapoli/github-to-aws for how the AWS credentials work
 permissions:
@@ -31,8 +31,6 @@ jobs:
     - name: Open SG
       run: bash devops/open-sg.sh
 
-    - name: End test
-      run: exit
     - name: Update Django
       env:
         PRIVATE_KEY: ${{ secrets.SSH_STAGE_PRIVATE_KEY }}
@@ -40,11 +38,22 @@ jobs:
         USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        scp -o StrictHostKeyChecking=no -i private_key -r dist ${USER_NAME}@${HOSTNAME}:dist-new
         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-        cd /var/www/stage.brawna.org/backend
-        git pull
-        sudo apache2ctl graceful '
+          cd /var/www/stage.brawna.org/backend
+          git pull
+          sudo apache2ctl graceful '
 
-    - name: Do Django Migrations
-      run: echo "TBD"
+    - name: Do Django Migrations, if needed
+      env:
+        PRIVATE_KEY: ${{ secrets.SSH_STAGE_PRIVATE_KEY }}
+        HOSTNAME: ${{ secrets.SSH_STAGE_HOST }}
+        USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
+      run: |
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+          cd /var/www/stage.brawna.org/backend
+          source /var/www/stage.brawna.org/stage-venv/bin/activate
+          bash devops/djangoMigrations.sh '
+
+    - name: Close Security Group
+      if: always()
+      run: bash devops/close-sg.sh
