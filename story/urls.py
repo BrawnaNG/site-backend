@@ -18,7 +18,8 @@ from .views import (
     SaveChapterAPIView,
     StoryListAdminAPIView,
     ByCategoryView,
-    ByTagView
+    ByTagView,
+    ByAuthorView
 )
 
 app_name = "story"
@@ -36,6 +37,7 @@ urlpatterns = [
     path("/search/tag", SearchTagView.as_view(), name="search-tag"),
     path("/bycategory/<int:id>", ByCategoryView.as_view(), name="by-category"),
     path("/bytag/<int:id>", ByTagView.as_view(), name="by-tag"),
+    path("/byauthor/<int:id>", ByAuthorView.as_view(), name="by-author"),
     path("/list/", StoryListAPIView.as_view(), name="story-list"),
     path("/list-admin/", StoryListAdminAPIView.as_view(), name="story-list-admin"),
     path("/mine/", StoryMineAPIView.as_view(), name="story-mine"),

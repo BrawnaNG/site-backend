@@ -144,3 +144,8 @@ class DisableUserAPIView(APIView):
         return Response(
             {"detail": f"User {email} has been disabled"}, status=status.HTTP_200_OK
         )
+
+class AuthorRetrieveView(generics.RetrieveAPIView):
+    lookup_field = "id"
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

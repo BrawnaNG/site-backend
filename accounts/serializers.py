@@ -41,10 +41,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "alias", "date_joined", "story_count")
+        fields = ("email", "alias", "date_joined", "story_count", "id")
 
     def get_story_count(self, obj):
-        return Story.objects.filter(user=obj).count()
+        return Story.objects.filter(user_id=obj.id).count()
 
 class UserRoleSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()

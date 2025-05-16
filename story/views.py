@@ -13,6 +13,7 @@ from category.models import Category
 from tag.models import Tag
 from accounts.models import User
 import html
+from django.db.models import Count
 
 from .models import Story, Chapter
 from .serializers import (
@@ -63,7 +64,7 @@ class SearchAuthorView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.GET.get("author")
         if user:
-            queryset = User.objects.filter(alias__icontains=user).order_by("alias")
+            queryset = User.objects.filter(alias__icontains=user).annotate(story_count=Count('story')).filter(story_count__gt=0).order_by("alias")
         else:
             # return all stories if no search parameters are provided
             queryset = User.objects.none()
@@ -107,8 +108,7 @@ class ByCategoryView(generics.ListAPIView):
     def get_queryset(self):
         category_id = self.kwargs["id"]
         if category_id:
-            ids = [category_id]
-            queryset = Story.objects.filter(categories__id__in=ids).order_by("-created_at")
+            queryset = Story.objects.filter(categories__id=category_id).order_by("-created_at")
         else:
             queryset = Story.objects.none()
 
@@ -129,8 +129,7 @@ class ByTagView(generics.ListAPIView):
     def get_queryset(self):
         tag_id = self.kwargs["id"]
         if tag_id:
-            ids = [tag_id]
-            queryset = Story.objects.filter(tags__id__in=ids).order_by("-created_at")
+            queryset = Story.objects.filter(tags__id=tag_id).order_by("-created_at")
         else:
             queryset = Story.objects.none()
 
@@ -144,6 +143,27 @@ class ByTagView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)           
+
+class ByAuthorView(generics.ListAPIView):
+    serializer_class = StorySerializer
+
+    def get_queryset(self):
+        author_id = self.kwargs["id"]
+        if author_id:
+            queryset = Story.objects.filter(user__id=author_id).order_by("-created_at")
+        else:
+            queryset = Story.objects.none()
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)      
 
 class StoryListAdminAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
