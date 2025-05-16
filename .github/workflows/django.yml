@@ -39,15 +39,20 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-        cd /var/www/stage.brawna.org/backend
-        git pull
-        sudo apache2ctl graceful '
+          cd /var/www/stage.brawna.org/backend
+          git pull
+          sudo apache2ctl graceful '
 
     - name: Do Django Migrations, if needed
+      env:
+        PRIVATE_KEY: ${{ secrets.SSH_STAGE_PRIVATE_KEY }}
+        HOSTNAME: ${{ secrets.SSH_STAGE_HOST }}
+        USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
       run: |
-        cd /var/www/stage.brawna.org/backend
-        source /var/www/stage.brawna.org/stage-venv/bin/activate
-        bash devops/djangoMigrations.sh
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+          cd /var/www/stage.brawna.org/backend
+          source /var/www/stage.brawna.org/stage-venv/bin/activate
+          bash devops/djangoMigrations.sh '
 
     - name: Close Security Group
       if: always()
