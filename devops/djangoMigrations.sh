@@ -2,7 +2,6 @@
 #
 
 
-source /var/www/stage.brawna.org/stage-venv/bin/activate
 if ! python manage.py makemigrations --check ; then 
     python manage.py makemigrations
 fi
