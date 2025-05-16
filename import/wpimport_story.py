@@ -85,15 +85,17 @@ for (ID, post_name, post_date, post_author, post_title,
             )
             if debug:
                 print("Put the content in a Chapter, connect that to the Story just created")
-            chapter = Chapter.objects.create(
-                user = user,
-                title = post_title,
-                created_at = post_date,
-                body = post_content,
-                old_brawna_id = ID,
-                old_brawna_parent_id = 0,
-                story = story
-            )
+
+            if not Chapter.objects.filter(old_brawna_id=ID).exists():
+                chapter = Chapter.objects.create(
+                    user = user,
+                    title = post_title,
+                    created_at = post_date,
+                    body = post_content,
+                    old_brawna_id = ID,
+                    old_brawna_parent_id = 0,
+                    story = story
+                )
         else:
             if debug:
                 print ("Found children, make wp_post a Story, fetch all the retrieved 'chapter' posts into attached Chapters")
@@ -114,15 +116,16 @@ for (ID, post_name, post_date, post_author, post_title,
             )
             parent_brawna_id = ID
             for (ID, post_name, post_date, post_author, post_title, post_content) in children:
-                chapter = Chapter.objects.create(
-                    user = user,
-                    title = post_title,
-                    created_at = post_date,
-                    body = post_content,
-                    old_brawna_id = ID,
-                    old_brawna_parent_id = parent_brawna_id,
-                    story = story,
-                )
+                if not Chapter.objects.filter(old_brawna_id=ID).exists():
+                    chapter = Chapter.objects.create(
+                        user = user,
+                        title = post_title,
+                        created_at = post_date,
+                        body = post_content,
+                        old_brawna_id = ID,
+                        old_brawna_parent_id = parent_brawna_id,
+                        story = story,
+                    )
 
 if debug:
     print("All posts with post_parent==0 processed.")
@@ -130,33 +133,49 @@ if debug:
 #
 # Now find all the WP posts that have parents, making them Chapters for us,
 # linked back to Storys created above.
+# We may need to climb the tree through parents
 #
 query = ('SELECT ID, post_name, post_date, post_author, post_title, post_parent \
          FROM wp_posts WHERE post_status = "publish" AND post_author > 1 AND \
-         post_parent!=0; ORDER by ID')
+         post_parent!=0 ORDER by ID')
 
-debug = True
+debug = False
 cnx.reconnect()
 cursor.execute(query)
-for (ID, post_name, post_date, post_author,post_title,
-     post_parent) in cursor:
+
+parent_tree = {}
+
+for (ID, post_name, post_date, post_author,post_title, post_parent) in cursor:
+
+    parent_tree[ID] = post_parent
+
+    while not Story.objects.filter(old_brawna_id=post_parent).exists():
+        if post_parent in parent_tree:
+            post_parent = parent_tree[post_parent]
+        else:
+            post_parent = -1
+            break
+
+    if post_parent == -1:
+        print(f"Did not connect {ID} to a parent, might be a sub-chapter")
+        continue
+
     if debug:
         print(f"Importing {ID} {post_name}, connecting to {post_parent}")
-
-    user = User.objects.get(old_brawna_id=post_author)
     try:
         parent = Story.objects.get(old_brawna_id=post_parent)
     except:
-        print("Did not connect {ID} to parent {post_parent}, might be a sub-chapter")
+        print(f"Did not connect {ID} to a parent might be a sub-chapter")
 
-    chapter = Chapter.objects.create(
-        user = user,
-        title = post_title,
-        created_at = post_date,
-        body = post_content,
-        old_brawna_id = ID,
-        old_brawna_parent_id = parent.old_brawna_id,
-        story = parent,
+    if not Chapter.objects.filter(old_brawna_id=ID).exists():
+        chapter = Chapter.objects.create(
+            user = user,
+            title = post_title,
+            created_at = post_date,
+            body = post_content,
+            old_brawna_id = ID,
+            old_brawna_parent_id = parent.old_brawna_id,
+            story = parent,
     )
 
 cnx.close()
