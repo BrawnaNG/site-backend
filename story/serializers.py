@@ -11,10 +11,12 @@ from tag.serializers import TagSerializer
 from django.utils.text import slugify
 from django.utils.text import Truncator
 
-from .models import Story, Chapter, StoryChapters
+from .models import Story, Chapter
 
 class ChapterSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
+    story = serializers.ReadOnlyField(source="story.id")
+    story_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Chapter
@@ -25,6 +27,11 @@ class ChapterSerializer(serializers.ModelSerializer):
             "modified_date",
             "user"
         )
+
+    def get_story_name(self, obj):
+        if obj.story:
+            return obj.story.name
+        return None
     
     def validate_body(self, value):
         if strip_tags(value) != value:
@@ -57,11 +64,11 @@ class StorySerializer(serializers.ModelSerializer):
         return None
     
     def get_excerpt(self, obj):
-        chapter = obj.chapters.first()
+        chapter = Chapter.objects.filter(story=obj).first()
         if chapter:
-            chapter_body = strip_tags(html.unescape(chapter.body))
+            chapter_body = html.unescape(chapter.body)
             if chapter_body and len(chapter_body) > 0:
-                truncator = Truncator(chapter_body)
+                truncator = Truncator(html.unescape(chapter_body))
                 return truncator.words(50,truncate="...")
         return None
 
@@ -86,7 +93,7 @@ class StoryDetailSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     comments = serializers.SerializerMethodField()
-    chapter_summaries = serializers.SerializerMethodField()
+    chapters = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
@@ -103,9 +110,9 @@ class StoryDetailSerializer(serializers.ModelSerializer):
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
     
-    def get_chapter_summaries(self, obj):
-        ordered_chapters = obj.chapters.all().order_by('storychapters__order')
-        serializer = ChapterSummarySerializer(ordered_chapters, many=True)
+    def get_chapters(self, obj):
+        chapters = Chapter.objects.filter(story=obj)
+        serializer = ChapterSummarySerializer(chapters, many=True)
         return serializer.data
 
 class ChapterSummarySerializer(serializers.ModelSerializer):

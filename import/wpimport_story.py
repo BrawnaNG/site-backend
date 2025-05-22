@@ -1,6 +1,5 @@
 import os, sys
 import django
-from django.db.models import Count
 
 sys.path.append(os.path.abspath(os.path.join(__file__, *[os.pardir] * 2)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -10,11 +9,12 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 from story.models import Story
 from story.models import Chapter
-from story.models import StoryChapters
+from category.models import Category
 
 import mysql.connector
 
 debug = False
+
 
 DBUSER="brawna"
 DBPASS="brawna"
@@ -93,10 +93,9 @@ for (ID, post_name, post_date, post_author, post_title,
                     created_at = post_date,
                     body = post_content,
                     old_brawna_id = ID,
-                    old_brawna_parent_id = 0
+                    old_brawna_parent_id = 0,
+                    story = story
                 )
-                storychapter = StoryChapters.objects.create(story = story, chapter = chapter, order = 1)
-
         else:
             if debug:
                 print ("Found children, make wp_post a Story, fetch all the retrieved 'chapter' posts into attached Chapters")
@@ -116,7 +115,6 @@ for (ID, post_name, post_date, post_author, post_title,
                 is_published = True
             )
             parent_brawna_id = ID
-            order = 0
             for (ID, post_name, post_date, post_author, post_title, post_content) in children:
                 if not Chapter.objects.filter(old_brawna_id=ID).exists():
                     chapter = Chapter.objects.create(
@@ -125,10 +123,9 @@ for (ID, post_name, post_date, post_author, post_title,
                         created_at = post_date,
                         body = post_content,
                         old_brawna_id = ID,
-                        old_brawna_parent_id = parent_brawna_id
+                        old_brawna_parent_id = parent_brawna_id,
+                        story = story,
                     )
-                    storychapter = StoryChapters.objects.create(story = story, chapter = chapter, order = order)
-                    order += 1
 
 if debug:
     print("All posts with post_parent==0 processed.")
@@ -138,27 +135,20 @@ if debug:
 # linked back to Storys created above.
 # We may need to climb the tree through parents
 #
-
-debug = True
-parent_tree = {}
-#go through once to create the parent_tree
-query = ('SELECT ID, post_parent \
-         FROM wp_posts WHERE post_status = "publish" AND post_author > 1 AND \
-         post_parent !=0 ORDER by ID')
-cnx.reconnect()
-cursor.execute(query)
-for (ID, post_parent) in cursor:
-    parent_tree[ID] = post_parent
-cnx.close()
-
-#Now go through the posts to add them as chapters
-query = ('SELECT ID, post_name, post_date, post_author, post_title, post_parent, post_content \
+query = ('SELECT ID, post_name, post_date, post_author, post_title, post_parent \
          FROM wp_posts WHERE post_status = "publish" AND post_author > 1 AND \
          post_parent!=0 ORDER by ID')
 
+debug = False
 cnx.reconnect()
 cursor.execute(query)
-for (ID, post_name, post_date, post_author,post_title, post_parent, post_content) in cursor:
+
+parent_tree = {}
+
+for (ID, post_name, post_date, post_author,post_title, post_parent) in cursor:
+
+    parent_tree[ID] = post_parent
+
     while not Story.objects.filter(old_brawna_id=post_parent).exists():
         if post_parent in parent_tree:
             post_parent = parent_tree[post_parent]
@@ -167,16 +157,15 @@ for (ID, post_name, post_date, post_author,post_title, post_parent, post_content
             break
 
     if post_parent == -1:
-        if debug:
-            print(f"Did not connect {ID} to a parent, no entry in parent treer")
+        print(f"Did not connect {ID} to a parent, might be a sub-chapter")
         continue
 
+    if debug:
+        print(f"Importing {ID} {post_name}, connecting to {post_parent}")
     try:
         parent = Story.objects.get(old_brawna_id=post_parent)
     except:
-        if debug:
-            print(f"Did not connect {ID} to a parent, could not find parent")
-        continue
+        print(f"Did not connect {ID} to a parent might be a sub-chapter")
 
     if not Chapter.objects.filter(old_brawna_id=ID).exists():
         chapter = Chapter.objects.create(
@@ -185,12 +174,8 @@ for (ID, post_name, post_date, post_author,post_title, post_parent, post_content
             created_at = post_date,
             body = post_content,
             old_brawna_id = ID,
-            old_brawna_parent_id = parent.old_brawna_id
-        )
-        order = StoryChapters.objects.filter(story=parent).count() + 1
-        storychapter = StoryChapters.objects.create(story = parent, chapter = chapter, order = order)    
+            old_brawna_parent_id = parent.old_brawna_id,
+            story = parent,
+    )
 
 cnx.close()
-
-#set has chapters true for anything with more than one chapter
-Story.objects.annotate(chapter_count=Count('chapters')).filter(chapter_count__gt=1).update(has_chapters=True);
