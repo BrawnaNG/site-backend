@@ -1,18 +1,16 @@
 from django.contrib import admin
 
-from .models import Story, Chapter
+from .models import Story, StoryChapters, Chapter
 
 # Register your models here.
 
 from django.contrib import admin
-class ChapterInline(admin.TabularInline):
-    model = Chapter
-    fk_name = 'story'
+class StoryChaptersInline(admin.TabularInline):
+    model = StoryChapters
+    extra = 1    
 
 class StoryAdmin(admin.ModelAdmin):
-    inlines = [
-        ChapterInline,
-    ]
+    inlines = [StoryChaptersInline]
 
 admin.site.register(Story, StoryAdmin)
 admin.site.register(Chapter)
