@@ -1,7 +1,8 @@
 from rest_framework import generics, status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
-from accounts.permissions import IsAuth, IsAuthor
+from django.http import HttpResponseNotFound
+from accounts.permissions import IsAuth, IsAuthor, IsOwnerOrAdmin
 from category.models import Category
 from tag.models import Tag
 
@@ -45,7 +46,7 @@ class StoryCreateAPIView(generics.CreateAPIView):
 
 class StorySaveAPIView(generics.UpdateAPIView):
     serializer_class = StorySerializer
-    permission_classes = [IsAuthor]
+    permission_classes = [IsOwnerOrAdmin]
     queryset = Story.objects.all()
     lookup_field = "id"
 
@@ -119,3 +120,19 @@ class DeleteSavedStoryAPIView(generics.DestroyAPIView):
 
         user.saved_stories.remove(story)
         return Response({"detail": "Story removed from saved stories successfully."})
+    
+class StoryCheckAuthorAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuth]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        story_id = self.kwargs.get("id")
+        is_author = False
+        try:
+            story = Story.objects.get(id=story_id)
+            if story.user == user :
+                is_author = True
+        except Story.DoesNotExist:
+            return HttpResponseNotFound() 
+            
+        return Response(is_author, status=status.HTTP_200_OK)

@@ -6,7 +6,7 @@ from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 
 from rest_framework.response import Response
-from accounts.permissions import IsAuthor
+from accounts.permissions import IsAuthor, IsOwnerOrAdmin
 import html
 
 from .models import Story, Chapter, StoryChapters
@@ -23,7 +23,7 @@ class ChapterDetailAPIView(generics.RetrieveAPIView):
     
 class ChapterCreateAPIView(generics.CreateAPIView):
     serializer_class = ChapterSerializer
-    permission_classes = [IsAuthor]
+    permission_classes = [IsOwnerOrAdmin]
 
     def create(self, request, *args, **kwargs):
         try:
@@ -50,7 +50,7 @@ class ChapterCreateAPIView(generics.CreateAPIView):
 
 class ChapterSaveAPIView(generics.UpdateAPIView):
     serializer_class = ChapterSerializer
-    permission_classes = [IsAuthor]
+    permission_classes = [IsOwnerOrAdmin]
     queryset = Chapter.objects.all()
     
     def put(self, request, *args, **kwargs):
@@ -70,9 +70,12 @@ class ChapterSaveAPIView(generics.UpdateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChapterDeleteAPIView(generics.DestroyAPIView):
-    permission_classes = [IsAuthor]
+    permission_classes = [IsOwnerOrAdmin]
     queryset = Chapter.objects.all()
     lookup_field = "id"
+
+    def get_object(self):
+        return self.queryset.get(id=self.kwargs.get("id"))
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -84,31 +87,6 @@ class ChapterDeleteAPIView(generics.DestroyAPIView):
             StoryChapters.objects.filter(
                 Q(story=storychapter.story)
                 & Q(order__gt=pos)).update(order=F('order')-1)
-        except Chapter.DoesNotExist:
-            raise ValidationError("Invalid chapter id provided.")
-        except StoryChapters.DoesNotExist:
-            raise ValidationError("Orphan chapter")
-        except KeyError:
-            raise ValidationError("Chapter id is missing from URL.")
-
-        return Response("Chapter deleted", status=status.HTTP_200_OK)
-
-class ChapterMoveAPIView(generics.UpdateAPIView):
-    permission_classes = [IsAuthor]
-
-    def put(self, request, *args, **kwargs):
-        try:
-            chapter = self.queryset.get(id=self.kwargs.get("id"))
-            newpos = self.queryset.get(id=self.kwargs.get("pos"))
-            storychapter = StoryChapters.objects.get(chapter=chapter)
-            StoryChapters.objects.filter(
-                Q(story=storychapter.story)
-                & Q(order__gte=newpos)).update(order=F('order')+1)
-            StoryChapters.objects.filter(
-                Q(story=storychapter.story)
-                & Q(order__lte=newpos)).update(order=F('order')-1)
-            storychapter.order = newpos
-            storychapter.save()
         except Chapter.DoesNotExist:
             raise ValidationError("Invalid chapter id provided.")
         except StoryChapters.DoesNotExist:
