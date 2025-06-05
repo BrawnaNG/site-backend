@@ -6,6 +6,7 @@ from .story_views import (
     StoryDetailAPIView,
     StoryRetrieveUpdateDestroyAPIView,
     DeleteSavedStoryAPIView,
+    StoryCheckAuthorAPIView,
 )
 
 from .chapter_views import (
@@ -13,7 +14,6 @@ from .chapter_views import (
     ChapterDetailAPIView,
     ChapterSaveAPIView,
     ChapterDeleteAPIView,
-    ChapterMoveAPIView
 )
 
 from .search_views import (
@@ -48,13 +48,13 @@ urlpatterns = [
     path("/save-story/<int:id>/", StorySaveAPIView.as_view()),
     path("/detail/<int:id>/", StoryDetailAPIView.as_view(), name="story-detail"),
     path("/delete-saved-story/<int:id>/", DeleteSavedStoryAPIView.as_view()),
+    path("/check-author/<int:id>/", StoryCheckAuthorAPIView.as_view()),
 
     #chapter paths
     path("/chapter/<int:id>/", ChapterDetailAPIView.as_view(), name="chapter-detail"),
-    path("/<int:storyid>/chapter/add/", ChapterCreateAPIView.as_view(), name="chapter-create"),
-    path("/chapter-save/<int:id>/", ChapterSaveAPIView.as_view()),
-    path("/chapter-move/<int:id>/", ChapterMoveAPIView.as_view()),
-    path("/chapter-delete/<int:id>/", ChapterDeleteAPIView.as_view()),
+    path("/<int:storyid>/chapter-add/", ChapterCreateAPIView.as_view(), name="chapter-create"),
+    path("/<int:storyid>/chapter-save/<int:id>/", ChapterSaveAPIView.as_view()),
+    path("/<int:storyid>/chapter-delete/<int:id>/", ChapterDeleteAPIView.as_view()),
 
     #search and list views
     path("/search/story", SearchStoryView.as_view(), name="search-story"),
