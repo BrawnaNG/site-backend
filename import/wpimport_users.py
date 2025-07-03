@@ -18,10 +18,10 @@ def show_spinner(iteration):
     spinner = ['|', '/', '-', '\\']
     print(f'\r{spinner[iteration % 4]} Processing...', end='', flush=True)
 
-DBUSER = os.environ.get("DBUSER")
-DBPASS = os.environ.get("DBPASS")
-DBHOST = os.environ.get("DBHOST")
-DBNAME = os.environ.get("DBNAME")
+DBUSER = os.environ.get("DBUSER","brawna")
+DBPASS = os.environ.get("DBPASS","brawna")
+DBHOST = os.environ.get("DBHOST","localhost")
+DBNAME = os.environ.get("DBNAME","wordpress")
 
 cnx = mysql.connector.connect(user=DBUSER, password=DBPASS,
                               host=DBHOST,
