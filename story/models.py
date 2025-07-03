@@ -32,7 +32,7 @@ class Chapter(models.Model):
 class Story(models.Model):
     title = models.CharField(blank=False, null=False, max_length=255)
     brief = models.TextField(blank=True, default="")
-    slug = models.SlugField(unique=True, blank=False)
+    slug = models.SlugField(max_length=100, unique=True, blank=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
