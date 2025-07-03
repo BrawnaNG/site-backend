@@ -16,10 +16,10 @@ import mysql.connector
 
 debug = False
 
-DBUSER="brawna"
-DBPASS="brawna"
-DBHOST="localhost"
-DBNAME="wordpress"
+DBUSER = os.environ.get("DBUSER","brawna")
+DBPASS = os.environ.get("DBPASS","brawna")
+DBHOST = os.environ.get("DBHOST","localhost")
+DBNAME = os.environ.get("DBNAME","wordpress")
 
 def show_spinner(iteration):
     spinner = ['|', '/', '-', '\\']

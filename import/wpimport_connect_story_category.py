@@ -12,10 +12,10 @@ from category.models import Category
 
 import mysql.connector
 
-DBUSER="brawna"
-DBPASS="brawna"
-DBHOST="localhost"
-DBNAME="wordpress"
+DBUSER = os.environ.get("DBUSER","brawna")
+DBPASS = os.environ.get("DBPASS","brawna")
+DBHOST = os.environ.get("DBHOST","localhost")
+DBNAME = os.environ.get("DBNAME","wordpress")
 
 debug = False
 
