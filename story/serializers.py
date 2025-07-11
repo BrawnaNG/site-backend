@@ -83,6 +83,7 @@ class ChapterDetailSerializer(serializers.ModelSerializer):
 
 class StoryDetailSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.alias")
+    user_id = serializers.ReadOnlyField(source="user.id")
     categories = CategorySerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     comments = serializers.SerializerMethodField()
@@ -96,6 +97,7 @@ class StoryDetailSerializer(serializers.ModelSerializer):
             "modified_date",
             "slug",
             "user",
+            "user_id"
         )
 
     def get_comments(self, obj):
