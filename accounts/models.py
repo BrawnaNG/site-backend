@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from django.conf import settings
@@ -35,7 +35,15 @@ class User(AbstractUser):
 
     @classmethod
     def generate_activation_token(cls, user_id):
-        payload = {"user_id": user_id, "exp": datetime.utcnow() + timedelta(hours=24)}
+        payload = {"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(hours=24)}
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256").decode(
+            "utf-8"
+        )
+        return token
+    
+    @classmethod
+    def generate_reset_token(cls, user_id):
+        payload = {"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(hours=24)}
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256").decode(
             "utf-8"
         )
