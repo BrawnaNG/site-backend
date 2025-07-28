@@ -34,7 +34,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY","django-insecure-ap+rrgk$#dzic)-har4=
 DEBUG = os.getenv("DJANGO_DEBUG",True)
 
 ALLOWED_HOSTS = ["*"]
-CLIENT_BASE_URL = os.getenv("DJANGO_BASE_URL","127.0.0.1:8000")
+WEBSITE_BASE_URL = os.getenv("WEBSITE_BASE_URL","127.0.0.1:5173")
 
 # Application definition
 

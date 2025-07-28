@@ -8,7 +8,9 @@ from .views import (
     RegistrationAPIView,
     UsersListAPIView,
     UserRoleListAPIView,
-    AuthorRetrieveView
+    AuthorRetrieveView,
+    ResetPasswordAPIView,
+    ApplyResetPasswordAPIView,
 )
 
 app_name = "accounts"
@@ -20,6 +22,8 @@ urlpatterns = [
     path("/role/", UserRoleListAPIView.as_view(), name="user_role"),
     path("/change-password-admin/<str:email>/", ChangePasswordView.as_view()),
     path("/disable-user-admin/<str:email>/", DisableUserAPIView.as_view()),
+    path("/reset-password/", ResetPasswordAPIView.as_view(), name="reset-password"),
+    path("/apply-reset-password/", ApplyResetPasswordAPIView.as_view(), name="apply-reset-password"),
     path(
         "/info/<int:id>/",
         AuthorRetrieveView.as_view(),
