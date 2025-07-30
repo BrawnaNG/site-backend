@@ -35,7 +35,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
 class UserSerializer(serializers.ModelSerializer):
     story_count = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
