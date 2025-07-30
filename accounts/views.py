@@ -47,7 +47,7 @@ class RegistrationAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             token = User.generate_activation_token(user.id)
-            message = f"Click the following link to activate your account: {settings.CLIENT_BASE_URL}/api/v1/accounts/activation/{token}/"
+            message = f"Click the following link to activate your account: {settings.WEBSITE_BASE_URL}activation/{token}/"
             send_mail(
                 subject="Activate your account",
                 message=message,
@@ -58,9 +58,52 @@ class RegistrationAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ResetPasswordAPIView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email');
+        if email:
+            user = User.objects.get(email=email)
+            if user:
+                token = User.generate_reset_token(user.id)
+                message = f"Click the following link to reset your password: {settings.WEBSITE_BASE_URL}password/reset/{token}/"
+                send_mail(
+                    subject="Reset your password",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+                return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+class ApplyResetPasswordAPIView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        token = request.data.get('token')
+        password = request.data.get('password')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload["user_id"]
+            user = User.objects.get(id=user_id)
+            user.set_password(password)
+            user.save()
+            return Response(status=status.HTTP_201_CREATED)
+        except jwt.exceptions.ExpiredSignatureError:
+            return Response(
+                {"detail": "The activation link has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except (jwt.exceptions.DecodeError, User.DoesNotExist):
+            return Response(
+                {"detail": "Invalid activation link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 class ActivationAPIView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = []
 
     def get(self, request, token):
         try:
