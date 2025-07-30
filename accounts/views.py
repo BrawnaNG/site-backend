@@ -62,21 +62,24 @@ class ResetPasswordAPIView(APIView):
     permission_classes = []
 
     def post(self, request):
-        email = request.data.get('email');
-        if email:
-            user = User.objects.get(email=email)
-            if user:
-                token = User.generate_reset_token(user.id)
-                message = f"Click the following link to reset your password: {settings.WEBSITE_BASE_URL}password/reset/{token}/"
-                send_mail(
-                    subject="Reset your password",
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
-                return Response(status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        try:
+            email = request.data.get('email');
+            if email:
+                user = User.objects.get(email=email)
+                if user:
+                    token = User.generate_reset_token(user.id)
+                    message = f"Click the following link to reset your password: {settings.WEBSITE_BASE_URL}password/reset/{token}/"
+                    send_mail(
+                        subject="Reset your password",
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+                    return Response(status=status.HTTP_200_OK)
+        except:
+            # Always return okay to avoid leading emails
+            return Response(status=status.HTTP_200_OK)
 
 class ApplyResetPasswordAPIView(APIView):
     permission_classes = []
