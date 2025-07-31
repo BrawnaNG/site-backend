@@ -21,12 +21,14 @@ class SearchStoryView(generics.ListAPIView):
     def get_queryset(self):
         query = self.request.GET.get("q")
         if query:
-            queryset = Story.objects.filter(
+            queryset = Story.objects.filter(is_published = True)
+            queryset = queryset.filter(
                 Q(chapters__body__icontains=query)
                 | Q(user__alias__icontains=query)
                 | Q(brief__icontains=query)
                 | Q(title__icontains=query)
             ).distinct().order_by("title")
+            
         else:
             # return all stories if no search parameters are provided
             queryset = Story.objects.none()
@@ -107,7 +109,7 @@ class StoryListAdminAPIView(generics.ListAPIView):
 
 class StoryListAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
-    queryset = Story.objects.all().order_by("-created_at")
+    queryset = Story.objects.filter(is_published=True).order_by("-created_at")
     pagination_class = PageNumberPagination
     
 class StoryMineAPIView(generics.ListAPIView):
