@@ -1,10 +1,6 @@
 # Update a security group rule allowing your
 # current IPv4 I.P. to connect on port 22 (SSH)
 
-# variables to identify sec group and sec group rule
-SEC_GROUP_ID='sg-0e4369990113dbba3'
-SEC_GROUP_RULE_ID='sgr-08f65e18d82779601'
-
 # gets current date and prepares description for sec group rule
 CURRENT_DATE=$(date +'%Y-%m-%d')
 SEC_GROUP_RULE_DESCRIPTION="dynamic ip updated - ${CURRENT_DATE}"
