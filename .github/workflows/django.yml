@@ -30,13 +30,16 @@ jobs:
         aws-region: us-east-1
 
     - name: Open SG
+      env:
+        SEC_GROUP_ID: ${{ vars.SEC_GROUP_ID }}
+        SEC_GROUP_RULE_ID: ${{ vars.SEC_GROUP_RULE_ID }}
       run: bash devops/open-sg.sh
 
     - name: Update Django
       env:
-        PRIVATE_KEY: ${{ secrets.SSH_STAGE_PRIVATE_KEY }}
-        HOSTNAME: ${{ secrets.SSH_STAGE_HOST }}
-        USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
+        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        HOSTNAME: ${{ secrets.SSH_HOST }}
+        USER_NAME: ${{ secrets.SSH_USER_NAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
@@ -48,9 +51,9 @@ jobs:
 
     - name: Do Django Migrations, if needed
       env:
-        PRIVATE_KEY: ${{ secrets.SSH_STAGE_PRIVATE_KEY }}
-        HOSTNAME: ${{ secrets.SSH_STAGE_HOST }}
-        USER_NAME: ${{ secrets.SSH_STAGE_USER_NAME }}
+        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        HOSTNAME: ${{ secrets.SSH_HOST }}
+        USER_NAME: ${{ secrets.SSH_USER_NAME }}
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
           cd /var/www/stage.brawna.org/backend
@@ -59,4 +62,7 @@ jobs:
 
     - name: Close Security Group
       if: always()
+      env:
+        SEC_GROUP_ID: ${{ vars.SEC_GROUP_ID }}
+        SEC_GROUP_RULE_ID: ${{ vars.SEC_GROUP_RULE_ID }}
       run: bash devops/close-sg.sh
