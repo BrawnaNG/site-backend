@@ -10,7 +10,7 @@ class ByCategoryView(generics.ListAPIView):
     def get_queryset(self):
         category_id = self.kwargs["id"]
         if category_id:
-            queryset = Story.objects.filter(categories__id=category_id).order_by("-created_at")
+            queryset = Story.objects.filter(is_published=True).filter(categories__id=category_id).order_by("-created_at")
         else:
             queryset = Story.objects.none()
 
@@ -31,7 +31,7 @@ class ByTagView(generics.ListAPIView):
     def get_queryset(self):
         tag_id = self.kwargs["id"]
         if tag_id:
-            queryset = Story.objects.filter(tags__id=tag_id).order_by("-created_at")
+            queryset = Story.objects.filter(is_published=True).filter(tags__id=tag_id).order_by("-created_at")
         else:
             queryset = Story.objects.none()
 
@@ -52,7 +52,7 @@ class ByAuthorView(generics.ListAPIView):
     def get_queryset(self):
         author_id = self.kwargs["id"]
         if author_id:
-            queryset = Story.objects.filter(user__id=author_id).order_by("-created_at")
+            queryset = Story.objects.filter(is_published=True).filter(user__id=author_id).order_by("-created_at")
         else:
             queryset = Story.objects.none()
 

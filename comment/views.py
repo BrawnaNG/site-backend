@@ -52,12 +52,17 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
     permission_classes = [IsAuth]
 
 
-class UserCommentListAPIView(APIView):
+class UserCommentListAPIView(generics.ListAPIView):
     permission_classes = [IsAuth]
+    pagination_class = PageNumberPagination
 
     def get(self, request):
         user_comments = Comment.objects.filter(user=request.user).order_by(
             "-created_at"
         )
+        page = self.paginate_queryset(user_comments)
+        if page is not None:
+            serializer = CommentSerializer(user_comments, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = CommentSerializer(user_comments, many=True)
         return Response(serializer.data)
