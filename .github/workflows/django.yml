@@ -39,7 +39,7 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         HOSTNAME: ${{ secrets.SSH_HOST }}
-        USER_NAME: ${{ secrets.SSH_USER_NAME }}
+        USER_NAME: ${{ secrets.SSH_USER }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
@@ -53,7 +53,7 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         HOSTNAME: ${{ secrets.SSH_HOST }}
-        USER_NAME: ${{ secrets.SSH_USER_NAME }}
+        USER_NAME: ${{ secrets.SSH_USER }}
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
           cd /var/www/stage.brawna.org/backend
