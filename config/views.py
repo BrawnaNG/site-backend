@@ -3,11 +3,30 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MyTokenObtainPairSerializer
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from accounts.models import User
 import requests
 import os
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        if not data["username"] and data["email"]:
+            find_user = User.objects.get(email__iexact = data["email"])
+            if find_user:
+                data["username"] = find_user.username
+                del data["email"]
+
+        serializer = self.get_serializer(data=data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def verify_recaptcha(request):
