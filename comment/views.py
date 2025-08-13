@@ -19,7 +19,7 @@ class CommentListAPIView(generics.ListAPIView):
         try:
             story = Story.objects.get(id=self.kwargs["storyid"])
         except Exception:
-            raise ValidationError("Invalid story slug provided.")
+            raise ValidationError("Invalid story id provided.")
         queryset = Comment.objects.filter(story=story)
         return queryset
 

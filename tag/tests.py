@@ -25,8 +25,8 @@ class TagListAPIViewTest(APITestCase):
         self.assertEqual(response.data["results"][0]["name"], self.tag1.name)
 
     def test_pagination(self):
-        for i in range(20):
+        for i in range(24):
             Tag.objects.create(name=f"mytest{i}")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 10)
+        self.assertEqual(len(response.data["results"]), 12)

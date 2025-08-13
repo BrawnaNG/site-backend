@@ -28,8 +28,6 @@ class ChapterCreateAPIView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         try:
             data = request.data.copy()
-            if "body" in data:
-                data["body"] = html.escape(data.pop("body"))
             pos = data.pop("pos")
             story_id = self.kwargs["storyid"]
             story = Story.objects.get(id=story_id)
@@ -54,20 +52,30 @@ class ChapterSaveAPIView(generics.UpdateAPIView):
     queryset = Chapter.objects.all()
     
     def put(self, request, *args, **kwargs):
-        chapter = self.queryset.get(id=self.kwargs.get("id"))
-        data = request.data.copy()
-        data["body"] = html.escape(data.pop("body"))
-        serializer = self.get_serializer(data=data)
+        try:
+            chapter = self.queryset.get(id=self.kwargs.get("id"))
+            data = request.data.copy()
+            data["body"] = html.escape(data.pop("body"))
+            data["title"] = data.pop("title")
+            if not data["title"]:
+                return Response("Empty title", status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(data=data)
 
-        if serializer.is_valid():
-            title = serializer.validated_data["title"]
-            body = serializer.validated_data["body"]
-            chapter.title = title
-            chapter.body = body
-            chapter.save()
-            return Response({"status": "chapter saved"})
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if serializer.is_valid():
+                title = serializer.validated_data["title"]
+                body = serializer.validated_data["body"]
+                chapter.title = title
+                chapter.body = body
+                chapter.save()
+                return Response({"status": "chapter saved"})
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Chapter.DoesNotExist:
+            return Response("Chapter does not exist", status=status.HTTP_404_NOT_FOUND)
+        except StoryChapters.DoesNotExist:
+            raise ValidationError("Orphan chapter")
+        except KeyError:
+            raise ValidationError("Title is missing from data.")
 
 class ChapterDeleteAPIView(generics.DestroyAPIView):
     permission_classes = [IsOwnerOrAdmin]
@@ -88,10 +96,7 @@ class ChapterDeleteAPIView(generics.DestroyAPIView):
                 Q(story=storychapter.story)
                 & Q(order__gt=pos)).update(order=F('order')-1)
         except Chapter.DoesNotExist:
-            raise ValidationError("Invalid chapter id provided.")
+            return Response("Chapter does not exist", status=status.HTTP_404_NOT_FOUND)
         except StoryChapters.DoesNotExist:
             raise ValidationError("Orphan chapter")
-        except KeyError:
-            raise ValidationError("Chapter id is missing from URL.")
-
         return Response("Chapter deleted", status=status.HTTP_200_OK)
