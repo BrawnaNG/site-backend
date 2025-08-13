@@ -2,7 +2,7 @@ from rest_framework import generics
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from accounts.permissions import IsAdmin, IsAuthor
+from accounts.permissions import IsAdmin, IsAuthor, IsAuth
 from tag.models import Tag
 from accounts.models import User
 from django.db.models import Count
@@ -89,7 +89,7 @@ class SearchTagView(generics.ListAPIView):
 
 class StoryListAdminAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
-    permission_class = IsAdmin
+    permission_classes = [IsAdmin]
 
     def get_queryset(self, username):
         queryset = Story.objects.all().order_by("-created_at")
@@ -154,9 +154,20 @@ class StoryFeaturedAPIView(generics.RetrieveAPIView):
 
 class SavedStoriesAPIView(generics.ListAPIView):
     serializer_class = StorySerializer
-    permission_classes = [IsAuthor]
+    permission_classes = [IsAuth]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
         user = self.request.user
-        return user.saved_stories.all()
+        return user.saved_stories.all().order_by("-created_at")
+    
+    def list(self, request):
+        queryset = self.get_queryset()
+        if queryset is None:
+            return Response([])
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
