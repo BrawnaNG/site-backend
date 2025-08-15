@@ -4,10 +4,7 @@ from django.db.models import Q
 
 class IsAuth(IsAuthenticated, BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method == "GET":
-            return True
         return request.user.is_authenticated
-
 
 class IsUserType(BasePermission):
     user_type = ""
@@ -23,8 +20,6 @@ class IsUserType(BasePermission):
         )
 
     def has_object_permission(self, request, view, obj):
-        if request.method == "GET":
-            return True
         return self.has_permission(request, view)
 
 class IsOwnerOrAdmin(BasePermission):

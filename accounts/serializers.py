@@ -59,6 +59,17 @@ class UserRoleSerializer(serializers.ModelSerializer):
     def get_role(self, obj):
         return obj.type
 
+class UserSavedStoriesSerializer(serializers.ModelSerializer):
+    saved_stories = serializers.PrimaryKeyRelatedField(many=True, read_only=False, queryset=Story.objects.all())
+
+    class Meta:
+        model = User
+        fields = ("saved_stories","id")
+        read_only_fields = (
+            "id",
+            "saved_stories"
+        )
+
 class ChangePasswordAdminSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]

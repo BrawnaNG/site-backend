@@ -23,7 +23,7 @@ class ByCategoryView(generics.ListAPIView):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)       
+        return Response(serializer.data)
     
 class ByTagView(generics.ListAPIView):
     serializer_class = StorySerializer

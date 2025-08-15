@@ -5,6 +5,7 @@ from .story_views import (
     StoryCreateAPIView,
     StoryDetailAPIView,
     StoryRetrieveUpdateDestroyAPIView,
+    AddSavedStoryAPIView,
     DeleteSavedStoryAPIView,
     StoryCheckAuthorAPIView,
 )
@@ -45,16 +46,20 @@ urlpatterns = [
         name="story-change",
     ),
     path("/add/", StoryCreateAPIView.as_view(), name="story-create"),
-    path("/save-story/<int:id>/", StorySaveAPIView.as_view()),
+    path("/save-story/<int:id>/", StorySaveAPIView.as_view(), name="story-save"),
     path("/detail/<int:id>/", StoryDetailAPIView.as_view(), name="story-detail"),
-    path("/delete-saved-story/<int:id>/", DeleteSavedStoryAPIView.as_view()),
-    path("/check-author/<int:id>/", StoryCheckAuthorAPIView.as_view()),
+    path("/check-author/<int:id>/", StoryCheckAuthorAPIView.as_view(), name="story-check-author"),
+
+    # saved stories
+    path("/add-saved-story/<int:id>/", AddSavedStoryAPIView.as_view(), name="story-saved-add"),
+    path("/delete-saved-story/<int:id>/", DeleteSavedStoryAPIView.as_view(), name="story-saved-delete"),
+    path("/save-story-list/", SavedStoriesAPIView.as_view(), name="story-saved-list"),
 
     #chapter paths
     path("/chapter/<int:id>/", ChapterDetailAPIView.as_view(), name="chapter-detail"),
     path("/<int:storyid>/chapter-add/", ChapterCreateAPIView.as_view(), name="chapter-create"),
-    path("/<int:storyid>/chapter-save/<int:id>/", ChapterSaveAPIView.as_view()),
-    path("/<int:storyid>/chapter-delete/<int:id>/", ChapterDeleteAPIView.as_view()),
+    path("/<int:storyid>/chapter-save/<int:id>/", ChapterSaveAPIView.as_view(), name="chapter-save"),
+    path("/<int:storyid>/chapter-delete/<int:id>/", ChapterDeleteAPIView.as_view(), name="chapter-delete"),
 
     #search and list views
     path("/search/story", SearchStoryView.as_view(), name="search-story"),
@@ -64,7 +69,6 @@ urlpatterns = [
     path("/list-admin/", StoryListAdminAPIView.as_view(), name="story-list-admin"),
     path("/mine/", StoryMineAPIView.as_view(), name="story-mine"),
     path("/featured/", StoryFeaturedAPIView.as_view(), name="story-featured"),
-    path("/save-story-list/", SavedStoriesAPIView.as_view()),
 
     #filter by category, tag, or author
     path("/bycategory/<int:id>", ByCategoryView.as_view(), name="by-category"),

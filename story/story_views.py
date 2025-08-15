@@ -38,7 +38,7 @@ class StoryCreateAPIView(generics.CreateAPIView):
             serializer = self.serializer_class(data=data)
             if (serializer.is_valid()):
                 serializer.save()
-                return Response(serializer.data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({"error": "Unable to create story"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
@@ -56,7 +56,6 @@ class StorySaveAPIView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         story = self.get_object()
         data = request.data.copy()
-        user = request.user
 
         tags = data.pop("tags", [])
         if tags:
@@ -101,11 +100,25 @@ class StorySaveAPIView(generics.UpdateAPIView):
             story.tags.set(tags)
             story.categories.set(categories)
             story.save()
-            user.saved_stories.add(story)
             return Response({"status": "story saved"})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+class AddSavedStoryAPIView(generics.UpdateAPIView):
+    serializer_class = StorySerializer
+    permission_classes = [IsAuth]
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        story_id = self.kwargs.get("id")
+        try:
+            story = Story.objects.get(id=story_id)
+        except Story.DoesNotExist:
+            raise NotFound("Story not found!")
+
+        user.saved_stories.add(story)
+        return Response({"detail": "Story added to saved stories successfully."})
+
 class DeleteSavedStoryAPIView(generics.DestroyAPIView):
     serializer_class = StorySerializer
     permission_classes = [IsAuth]
