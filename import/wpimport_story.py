@@ -37,7 +37,9 @@ cursor = cnx.cursor()
 # chapters(and thus a Story and Chapter for us), or it is a multi-chapter story
 # (and thus a Story with Chapters to be added later for us)
 #
-query = ('SELECT ID, post_name, post_date, post_author, post_title, \
+query = ('SELECT ID, post_name, \
+         date_format(post_date, "%Y-%m-%d %H:%i:%sZ") as post_date, \
+         post_author, post_title, \
          post_parent, post_content \
          FROM wp_posts WHERE post_status = "publish" AND post_author > 1 AND \
          post_parent=0 ORDER by ID')
@@ -58,7 +60,9 @@ for (ID, post_name, post_date, post_author, post_title,
         # print("TODO Check it's not already loaded")
         if debug:
             print(f"Search for wp_posts with '{post_name}-chapter-%' AND post_author is the same")
-        query = (f"SELECT ID, post_name, post_date, post_author, post_title, \
+        query = (f"SELECT ID, post_name, \
+                 date_format(post_date, '%Y-%m-%d %H:%i:%sZ') as post_date, \
+                 post_author, post_title, \
                  post_content \
                  FROM wp_posts WHERE post_name LIKE '{post_name}-chapter-%' \
                  AND post_author='{post_author}' order by post_author;")
@@ -83,6 +87,8 @@ for (ID, post_name, post_date, post_author, post_title,
                 old_brawna_parent_id = 0,
                 is_published = True
             )
+            Story.objects.filter(slug=post_name).update(created_at = post_date)
+            
             if debug:
                 print("Put the content in a Chapter, connect that to the Story just created")
 
@@ -95,6 +101,7 @@ for (ID, post_name, post_date, post_author, post_title,
                     old_brawna_id = ID,
                     old_brawna_parent_id = 0
                 )
+                Chapter.objects.filter(title=post_title).update(created_at = post_date)
                 storychapter = StoryChapters.objects.create(story = story, chapter = chapter, order = 1)
 
         else:
@@ -115,6 +122,11 @@ for (ID, post_name, post_date, post_author, post_title,
                 old_brawna_parent_id = 0,
                 is_published = True
             )
+            #
+            # Story's get today's date as a default create. Over-ride that
+            #
+            Story.objects.filter(slug=post_name).update(created_at = post_date)
+
             parent_brawna_id = ID
             order = 0
             for (ID, post_name, post_date, post_author, post_title, post_content) in children:
@@ -127,6 +139,7 @@ for (ID, post_name, post_date, post_author, post_title,
                         old_brawna_id = ID,
                         old_brawna_parent_id = parent_brawna_id
                     )
+                    Chapter.objects.filter(title=post_title).update(created_at = post_date)
                     storychapter = StoryChapters.objects.create(story = story, chapter = chapter, order = order)
                     order += 1
 
@@ -152,7 +165,9 @@ for (ID, post_parent) in cursor:
 cnx.close()
 
 #Now go through the posts to add them as chapters
-query = ('SELECT ID, post_name, post_date, post_author, post_title, post_parent, post_content \
+query = ('SELECT ID, post_name, \
+         date_format(post_date, "%Y-%m-%d %H:%i:%sZ") as post_date, \
+         post_author, post_title, post_parent, post_content \
          FROM wp_posts WHERE post_status = "publish" AND post_author > 1 AND \
          post_parent!=0 ORDER by ID')
 
@@ -187,6 +202,8 @@ for (ID, post_name, post_date, post_author,post_title, post_parent, post_content
             old_brawna_id = ID,
             old_brawna_parent_id = parent.old_brawna_id
         )
+        Chapter.objects.filter(title=post_title).update(created_at=post_date)
+        
         order = StoryChapters.objects.filter(story=parent).count() + 1
         storychapter = StoryChapters.objects.create(story = parent, chapter = chapter, order = order)    
 
