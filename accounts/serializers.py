@@ -36,12 +36,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("email", "alias", "date_joined", "id")
+
+class UserSearchSerializer(serializers.ModelSerializer):
     story_count = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("email", "alias", "date_joined", "story_count", "id", "name")
+        fields = ("alias","story_count", "id", "name")
 
     def get_story_count(self, obj):
         return Story.objects.filter(user_id=obj.id).count()

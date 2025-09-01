@@ -22,7 +22,7 @@ from story.serializers import (
     ChapterSummarySerializer
 )
 from accounts.serializers import (
-    UserSerializer,
+    UserSearchSerializer,
     UserSavedStoriesSerializer
 )
 from tag.models import Tag
@@ -652,7 +652,7 @@ class SearchAuthorViewTestCase(ExistingStoryTestCase):
         response = self.client.get(self.url, {"author": "dog"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
-        serializer = UserSerializer(self.doguser)
+        serializer = UserSearchSerializer(self.doguser)
         self.assertEqual(response.data["results"][0], serializer.data)
 
     def test_when_not_expecting_results_get_no_results(self):
