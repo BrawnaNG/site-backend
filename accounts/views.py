@@ -21,6 +21,7 @@ from .serializers import (
     ChangePasswordAdminSerializer,
     RegistrationSerializer,
     UserSerializer,
+    UserSearchSerializer,
     UserRoleSerializer
 )
 
@@ -194,4 +195,4 @@ class DisableUserAPIView(APIView):
 class AuthorRetrieveView(generics.RetrieveAPIView):
     lookup_field = "id"
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSearchSerializer

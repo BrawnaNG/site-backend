@@ -13,7 +13,7 @@ from .serializers import (
 )
 
 from tag.serializers import TagSearchSerializer
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserSearchSerializer
 
 class SearchStoryView(generics.ListAPIView):
     serializer_class = StorySerializer
@@ -44,7 +44,7 @@ class SearchStoryView(generics.ListAPIView):
         return Response(serializer.data)
     
 class SearchAuthorView(generics.ListAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserSearchSerializer
 
     def get_queryset(self):
         user = self.request.GET.get("author")
