@@ -15,6 +15,10 @@ from .serializers import (
 from tag.serializers import TagSearchSerializer
 from accounts.serializers import UserSearchSerializer
 
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
 class SearchStoryView(generics.ListAPIView):
     serializer_class = StorySerializer
 
@@ -51,8 +55,8 @@ class SearchAuthorView(generics.ListAPIView):
         if user:
             queryset = User.objects.filter(alias__icontains=user).annotate(story_count=Count('story')).filter(story_count__gt=0).order_by("alias")
         else:
-            # return all stories if no search parameters are provided
-            queryset = User.objects.none()
+            # return all authors if no search parameters are provided
+            queryset = User.objects.annotate(story_count=Count('story')).filter(story_count__gt=0).order_by("alias")
 
         return queryset
 
@@ -64,6 +68,14 @@ class SearchAuthorView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+class ListAuthorView(generics.ListAPIView):
+    serializer_class = UserSearchSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = User.objects.annotate(story_count=Count('story')).filter(story_count__gt=0).order_by("alias")
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)    
     
 class SearchTagView(generics.ListAPIView):
     serializer_class = TagSearchSerializer
