@@ -26,6 +26,7 @@ from .search_views import (
     StoryListAPIView,
     StoryMineAPIView,
     StoryListAdminAPIView,
+    ListAuthorView
 )
 
 from .by_views import (
@@ -66,6 +67,7 @@ urlpatterns = [
     path("/search/author", SearchAuthorView.as_view(), name="search-author"),
     path("/search/tag", SearchTagView.as_view(), name="search-tag"),
     path("/list/", StoryListAPIView.as_view(), name="story-list"),
+    path("/list/author/", ListAuthorView.as_view(), name="author-list"),
     path("/list-admin/", StoryListAdminAPIView.as_view(), name="story-list-admin"),
     path("/mine/", StoryMineAPIView.as_view(), name="story-mine"),
     path("/featured/", StoryFeaturedAPIView.as_view(), name="story-featured"),
