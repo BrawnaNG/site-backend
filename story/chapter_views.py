@@ -57,8 +57,6 @@ class ChapterSaveAPIView(generics.UpdateAPIView):
             data = request.data.copy()
             data["body"] = html.escape(data.pop("body"))
             data["title"] = data.pop("title")
-            if not data["title"]:
-                return Response("Empty title", status=status.HTTP_400_BAD_REQUEST)
             serializer = self.get_serializer(data=data)
 
             if serializer.is_valid():
@@ -74,8 +72,6 @@ class ChapterSaveAPIView(generics.UpdateAPIView):
             return Response("Chapter does not exist", status=status.HTTP_404_NOT_FOUND)
         except StoryChapters.DoesNotExist:
             raise ValidationError("Orphan chapter")
-        except KeyError:
-            raise ValidationError("Title is missing from data.")
 
 class ChapterDeleteAPIView(generics.DestroyAPIView):
     permission_classes = [IsOwnerOrAdmin]

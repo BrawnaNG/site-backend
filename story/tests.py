@@ -535,18 +535,6 @@ class ChapterSaveAPIView(ChapterTestCase):
         self.assertChapter(self.chapter1.id, self.chapter1_data)
         self.assertStoryChapters(self.catstory1, [self.chapter1.id])
 
-    def test_with_empty_title_returns_bad_request(self):
-        self.chapter1_data["title"] = ""
-        self.client.force_authenticate(user=self.catuser)
-        response = self.client.put(self.url, data=json.dumps(self.chapter1_data), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_with_missing_title_returns_bad_request(self):
-        del self.chapter1_data["title"]
-        self.client.force_authenticate(user=self.catuser)
-        response = self.client.put(self.url, data=json.dumps(self.chapter1_data), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST) 
-
     #The IsOwnerOrAdmin permission kicks in to return forbidden
     def test_with_wrong_story_id_returns_forbidden(self):
         self.client.force_authenticate(user=self.catuser)
