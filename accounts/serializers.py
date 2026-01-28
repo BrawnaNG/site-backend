@@ -59,7 +59,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("role","id")
+        fields = ("role","id","author_status_requested","author_status_denied")
 
     def get_role(self, obj):
         return obj.type

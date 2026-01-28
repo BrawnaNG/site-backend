@@ -128,8 +128,15 @@ class ActivationAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+class GetUserAPIView(APIView):
+    permission_classes = [IsAuthenticated,IsAdmin]
+    def get(self, request, user_id):
+        user = User.objects.get(id=user_id)
+        serializer = UserSerializer(user, many=False)
+        return Response(serializer.data)
 
 class LastUsersAPIView(APIView):
+    permission_classes = [IsAuthenticated,IsAdmin]
     queryset = User.objects.order_by("-date_joined")[:10]
 
     def get(self, request):
@@ -139,6 +146,7 @@ class LastUsersAPIView(APIView):
 
 
 class UsersListAPIView(APIView):
+    permission_classes = [IsAuthenticated,IsAdmin]
     queryset = User.objects.order_by("-date_joined")
 
     def get(self, request):
@@ -196,3 +204,57 @@ class AuthorRetrieveView(generics.RetrieveAPIView):
     lookup_field = "id"
     queryset = User.objects.all()
     serializer_class = UserSearchSerializer
+
+class RequestAuthorAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        try:
+            if user:
+                token = User.generate_author_token(user.id)
+                message = f"Click the following link to give the user author permissions: {settings.WEBSITE_BASE_URL}admin/approve-author/{token}/{user.id}"
+                send_mail(
+                    subject="Author status request",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.BRAWNA_ADMIN_EMAIL],
+                    fail_silently=False,
+                )
+                user.author_status_requested = True
+                user.save()
+                return Response(status=status.HTTP_200_OK)
+        except:
+            # Always return okay to avoid leading emails
+            return Response(status=status.HTTP_200_OK)
+        
+class ApproveAuthorAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request):
+        token = request.data.get('token')
+        is_approved = request.data.get('is_approved')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload["user_id"]
+            user = User.objects.get(id=user_id)
+            user.author_status_requested = False
+            if is_approved:
+                user.type = "author"
+            else:
+                user.author_status_denied = True
+                message = f"We're sorry, but your request to submit stories has been denied by the site Admin. Please email brawna2023@gmail.com or ping FfejL in Discord if you have questions."
+                send_mail(
+                    subject="Author request denied",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+            user.save()
+            return Response(status=status.HTTP_200_OK)
+        except (jwt.exceptions.DecodeError, User.DoesNotExist):
+            return Response(
+                {"detail": "Invalid activation link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )     
